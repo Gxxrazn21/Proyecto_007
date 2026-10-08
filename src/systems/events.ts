@@ -111,8 +111,9 @@ export function applyEffects(ops: OpsState, fx: Effects): void {
 /** ¿El efecto fue bueno, malo o neutro? (para colorear el reporte) */
 export function impactOf(fx: Effects): ReportEntry['impact'] {
   const score = (fx.health ?? 0) / 10 + (fx.science ?? 0) * 10 - (fx.deltaV ?? 0) / 100 + (fx.solarPower ?? 0) * 10;
-  if (score > 0.01) return 'good';
-  if (score < -0.01) return 'bad';
+  // Un costo pequeño (p. ej. −5 % de ciencia por el modo seguro) es prudencia, no un error.
+  if (score > 0.25) return 'good';
+  if (score < -0.6) return 'bad';
   return 'neutral';
 }
 

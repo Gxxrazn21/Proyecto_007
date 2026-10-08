@@ -1,0 +1,11 @@
+{
+  "name": "Misión Órbita",
+  "short_name": "Misión Órbita",
+  "description": "Diseña, lanza y opera tu propia misión espacial con datos reales de la NASA.",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0f1330",
+  "theme_color": "#0f1330",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

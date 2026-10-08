@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0f1330" />
+    <meta name="description" content="Diseña, lanza y opera tu propia misión espacial con datos reales de la NASA. NASA Space Apps Challenge 2026." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <title>Misión Órbita</title>
+    <style>
+      html, body {
+        margin: 0; height: 100%; background: #0f1330; overflow: hidden;
+        touch-action: none; -webkit-user-select: none; user-select: none;
+      }
+      body { display: grid; place-items: center; }
+      #game { position: relative; }
+      #game canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+      #rotate {
+        display: none; position: fixed; inset: 0; z-index: 10; background: #0f1330; color: #e2e6f6;
+        font: 16px "Pixelify Sans", system-ui, sans-serif; text-align: center; place-items: center; padding: 24px;
+      }
+      #rotate svg { width: 72px; height: 72px; margin-bottom: 16px; }
+      @media (orientation: portrait) and (pointer: coarse) { #rotate { display: grid; } }
+      @media (prefers-reduced-motion: reduce) { #rotate svg { animation: none !important; } }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="rotate" role="alert">
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#efc65c" stroke-width="1.5" aria-hidden="true">
+          <rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>
+        </svg>
+        <p>Gira tu teléfono para jugar en horizontal</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -8,8 +8,8 @@
     { "kind": "flare", "label": "X9.0", "severity": 1, "date": "2024-10-03", "detail": "Región activa 3842 — la mayor del ciclo solar 25 hasta entonces", "source": "offline" }
   ],
   "cmes": [
-    { "kind": "cme", "label": "≈2 500 km/s", "severity": 1, "date": "2012-07-23", "detail": "La 'casi catástrofe' de 2012: si hubiera ocurrido una semana antes, habría golpeado la Tierra", "source": "offline" },
-    { "kind": "cme", "label": "≈1 300 km/s", "severity": 0.8, "date": "2024-05-10", "detail": "Una de las CME de la tormenta de mayo de 2024", "source": "offline" }
+    { "kind": "cme", "label": "~2 500 km/s", "severity": 1, "date": "2012-07-23", "detail": "La 'casi catástrofe' de 2012: si hubiera ocurrido una semana antes, habría golpeado la Tierra", "source": "offline" },
+    { "kind": "cme", "label": "~1 300 km/s", "severity": 0.8, "date": "2024-05-10", "detail": "Una de las CME de la tormenta de mayo de 2024", "source": "offline" }
   ],
   "storms": [
     { "kind": "storm", "label": "Kp 9", "severity": 1, "date": "2024-05-10", "detail": "Tormenta G5 'Gannon': auroras visibles hasta en México", "source": "offline" },

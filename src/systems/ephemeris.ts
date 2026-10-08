@@ -38,7 +38,7 @@ const ELEMENTS: Record<'earth' | 'mars' | 'jupiter', Elements> = {
 
 /** Distancia media Tierra–Luna en UA (384 400 km). */
 const MOON_AU = 0.00257;
-/** Órbita heliosincrónica de 705 km ≈ 7 080 km del centro de la Tierra, en UA. */
+/** Órbita heliosincrónica de 705 km ~ 7 080 km del centro de la Tierra, en UA. */
 const LEO_AU = 7080 / 149_597_870.7;
 
 const RAD = Math.PI / 180;

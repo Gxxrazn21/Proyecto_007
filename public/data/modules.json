@@ -26,7 +26,7 @@
       "id": "solar_l",
       "name": "Ala solar grande",
       "category": "power",
-      "description": "4 000 W a 1 UA. En Júpiter (≈5,2 UA) entrega sólo ~130 W: Juno necesitó tres alas enormes.",
+      "description": "4 000 W a 1 UA. En Júpiter (~5,2 UA) entrega sólo ~130 W: Juno necesitó tres alas enormes.",
       "mass": 160,
       "cost": 70,
       "powerDraw": 0,

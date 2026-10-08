@@ -38,7 +38,7 @@
         "mars": 200,
         "jupiter": 2000
       },
-      "description": "Tres núcleos de Falcon 9. Llega a todo el Sistema Solar interior y a Júpiter con asistencias gravitatorias (≈5,5 años).",
+      "description": "Tres núcleos de Falcon 9. Llega a todo el Sistema Solar interior y a Júpiter con asistencias gravitatorias (~5,5 años).",
       "source": "SpaceX: 63,8 t a LEO, 16,8 t a Marte. Contrato de lanzamiento de Europa Clipper: 178 M$ (NASA, 2021)."
     },
     {
@@ -58,7 +58,7 @@
         "mars": 180,
         "jupiter": 900
       },
-      "description": "El cohete más potente de la NASA. Envía la nave directo a Júpiter en ≈2,5 años… a un precio enorme.",
+      "description": "El cohete más potente de la NASA. Envía la nave directo a Júpiter en ~2,5 años… a un precio enorme.",
       "source": "NASA: >27 t a TLI. Auditoría OIG (2022): ~2 200 M$ por cohete SLS. Europa Clipper se pasó de SLS a Falcon Heavy para ahorrar ~2 000 M$."
     }
   ]
