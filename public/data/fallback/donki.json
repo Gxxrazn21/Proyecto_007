@@ -1,0 +1,19 @@
+{
+  "_comment": "Respaldo offline: eventos HISTÓRICOS reales de clima espacial (NASA DONKI / NOAA SWPC). Se usan si no hay internet o si el Sol estuvo tranquilo.",
+  "flares": [
+    { "kind": "flare", "label": "X9.3", "severity": 1, "date": "2017-09-06", "detail": "Región activa 2673 — la mayor llamarada del ciclo solar 24", "source": "offline" },
+    { "kind": "flare", "label": "X8.2", "severity": 1, "date": "2017-09-10", "detail": "Región activa 2673", "source": "offline" },
+    { "kind": "flare", "label": "X6.9", "severity": 1, "date": "2011-08-09", "detail": "Región activa 1263", "source": "offline" },
+    { "kind": "flare", "label": "X8.7", "severity": 1, "date": "2024-05-14", "detail": "Región activa 3664 — la misma de la gran tormenta de mayo de 2024", "source": "offline" },
+    { "kind": "flare", "label": "X9.0", "severity": 1, "date": "2024-10-03", "detail": "Región activa 3842 — la mayor del ciclo solar 25 hasta entonces", "source": "offline" }
+  ],
+  "cmes": [
+    { "kind": "cme", "label": "≈2 500 km/s", "severity": 1, "date": "2012-07-23", "detail": "La 'casi catástrofe' de 2012: si hubiera ocurrido una semana antes, habría golpeado la Tierra", "source": "offline" },
+    { "kind": "cme", "label": "≈1 300 km/s", "severity": 0.8, "date": "2024-05-10", "detail": "Una de las CME de la tormenta de mayo de 2024", "source": "offline" }
+  ],
+  "storms": [
+    { "kind": "storm", "label": "Kp 9", "severity": 1, "date": "2024-05-10", "detail": "Tormenta G5 'Gannon': auroras visibles hasta en México", "source": "offline" },
+    { "kind": "storm", "label": "Kp 8", "severity": 1, "date": "2015-03-17", "detail": "Tormenta del Día de San Patricio (G4)", "source": "offline" },
+    { "kind": "storm", "label": "Kp 5", "severity": 0.4, "date": "2022-02-03", "detail": "Tormenta menor (G1) que hizo reingresar 38 satélites Starlink", "source": "offline" }
+  ]
+}

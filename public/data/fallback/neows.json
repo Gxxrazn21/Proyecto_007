@@ -1,0 +1,7 @@
+{
+  "_comment": "Respaldo offline: acercamientos reales registrados por NASA NeoWs / CNEOS.",
+  "asteroids": [
+    { "name": "99942 Apophis", "diameterM": 340, "missLunar": 0.1, "date": "2029-04-13", "hazardous": true, "source": "offline" },
+    { "name": "2012 DA14", "diameterM": 40, "missLunar": 0.09, "date": "2013-02-15", "hazardous": false, "source": "offline" }
+  ]
+}

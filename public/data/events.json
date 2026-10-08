@@ -1,0 +1,606 @@
+{
+  "_comment": "Eventos de operación. 'when' usa el mini-lenguaje de src/systems/events.ts. Gana el primer resultado cuya condición se cumple. timeoutChoice = opción si se acaba el tiempo.",
+  "events": [
+    {
+      "id": "flare",
+      "title": "Llamarada solar clase {label}",
+      "phase": "cruise",
+      "tags": [
+        "solar"
+      ],
+      "feed": "donki-flare",
+      "weight": 3,
+      "timeoutChoice": 1,
+      "text": "NASA DONKI registró una llamarada clase {label} el {date}. Los protones de alta energía llegarán a tu nave en minutos.",
+      "lesson": "Las llamaradas clase X pueden dañar la electrónica. Los equipos de operaciones ponen las naves en modo seguro cuando llega una alerta de clima espacial.",
+      "choices": [
+        {
+          "label": "Modo seguro: apagar instrumentos",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.05
+              },
+              "text": "La nave durmió durante la tormenta. Perdiste algo de observación, pero sin daños."
+            }
+          ]
+        },
+        {
+          "label": "Seguir observando",
+          "outcomes": [
+            {
+              "when": "severity>=0.8",
+              "effects": {
+                "health": -30
+              },
+              "text": "La llamarada clase {label} dañó la electrónica (−30 de salud)."
+            },
+            {
+              "effects": {
+                "health": -8,
+                "science": 0.03
+              },
+              "text": "Llamarada moderada: daño leve, pero captaste datos únicos del evento."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flare-ops",
+      "title": "Alerta: llamarada clase {label}",
+      "phase": "science",
+      "tags": [
+        "solar"
+      ],
+      "feed": "donki-flare",
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "Durante tus observaciones, DONKI reporta una llamarada clase {label} ({date}). Tienes segundos para decidir.",
+      "lesson": "Las llamaradas clase X pueden dañar la electrónica. Los equipos de operaciones ponen las naves en modo seguro cuando llega una alerta de clima espacial.",
+      "choices": [
+        {
+          "label": "Modo seguro: apagar instrumentos",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.05
+              },
+              "text": "Protegiste la nave a cambio de unas horas de ciencia."
+            }
+          ]
+        },
+        {
+          "label": "Seguir observando",
+          "outcomes": [
+            {
+              "when": "severity>=0.8",
+              "effects": {
+                "health": -30
+              },
+              "text": "La llamarada clase {label} dañó la electrónica (−30 de salud)."
+            },
+            {
+              "effects": {
+                "health": -8,
+                "science": 0.03
+              },
+              "text": "Llamarada moderada: daño leve, pero datos únicos."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cme",
+      "title": "Eyección de masa coronal",
+      "phase": "cruise",
+      "tags": [
+        "solar"
+      ],
+      "feed": "donki-cme",
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "Una nube de plasma solar viaja a {label} (DONKI, {date}). Cuando llegue, degradará las celdas solares expuestas.",
+      "lesson": "Las eyecciones de masa coronal degradan los paneles solares. Los RTG y las baterías dan margen para protegerse.",
+      "choices": [
+        {
+          "label": "Girar los paneles de canto",
+          "outcomes": [
+            {
+              "when": "solar==0",
+              "effects": {},
+              "text": "Tu nave usa RTG: no hay paneles que proteger. ¡Buena decisión de diseño!"
+            },
+            {
+              "when": "batteryWh>=eclipseNeedWh && batteryWh>0",
+              "effects": {
+                "science": -0.03
+              },
+              "text": "Tus baterías ({batteryWh} Wh) sostuvieron la nave con los paneles de canto. Sin daños."
+            },
+            {
+              "effects": {
+                "health": -15
+              },
+              "text": "Sin batería suficiente, la nave se quedó sin energía unas horas (−15 de salud)."
+            }
+          ]
+        },
+        {
+          "label": "Mantener los paneles al Sol",
+          "outcomes": [
+            {
+              "when": "solar==0",
+              "effects": {},
+              "text": "Tu nave usa RTG: la CME no afecta tu energía."
+            },
+            {
+              "effects": {
+                "solarPower": -0.12
+              },
+              "text": "Las celdas solares perdieron 12 % de eficiencia para siempre."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "storm",
+      "title": "Tormenta geomagnética {label}",
+      "phase": "science",
+      "tags": [
+        "leo"
+      ],
+      "feed": "donki-storm",
+      "weight": 3,
+      "timeoutChoice": 1,
+      "text": "DONKI registra una tormenta geomagnética {label} ({date}). La atmósfera se calienta, se expande y frena a los satélites en órbita baja.",
+      "lesson": "En febrero de 2022 una tormenta geomagnética hizo reingresar 38 satélites Starlink recién lanzados. El margen de Δv es un seguro.",
+      "choices": [
+        {
+          "label": "Encender el motor y subir la órbita (40 m/s)",
+          "outcomes": [
+            {
+              "when": "deltaVMargin>=40",
+              "effects": {
+                "deltaV": 40
+              },
+              "text": "Usaste 40 m/s de tu margen de Δv y mantuviste la órbita."
+            },
+            {
+              "effects": {
+                "science": -0.25
+              },
+              "text": "No tenías Δv de sobra: la órbita decayó y la misión se acortó (−25 % de ciencia)."
+            }
+          ]
+        },
+        {
+          "label": "Esperar a que pase",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.15
+              },
+              "text": "El arrastre bajó tu órbita y tendrás que retirarte antes (−15 % de ciencia)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eclipse",
+      "title": "Temporada de eclipses",
+      "phase": "science",
+      "tags": [
+        "eclipse"
+      ],
+      "weight": 0,
+      "timeoutChoice": 1,
+      "text": "Tu órbita entra en la sombra {shadow} {eclipse} minutos por vuelta. Sin Sol, los paneles no generan nada.",
+      "lesson": "Batería necesaria = consumo × duración del eclipse ÷ 80 % (profundidad de descarga segura).",
+      "choices": [
+        {
+          "label": "Apagar instrumentos en la sombra",
+          "outcomes": [
+            {
+              "when": "batteryWh>=eclipseNeedWh",
+              "effects": {
+                "science": -0.04
+              },
+              "text": "Precaución innecesaria: tu batería alcanzaba. Perdiste algo de ciencia."
+            },
+            {
+              "effects": {
+                "science": -0.1
+              },
+              "text": "Buena decisión: tu batería no alcanzaba. Sacrificaste ciencia (−10 %) y salvaste la nave."
+            }
+          ]
+        },
+        {
+          "label": "Mantener todo encendido",
+          "outcomes": [
+            {
+              "when": "batteryWh>=eclipseNeedWh",
+              "effects": {
+                "science": 0.03
+              },
+              "text": "Tu batería de {batteryWh} Wh cubrió los {eclipseNeedWh} Wh del eclipse. Ciencia sin pausa."
+            },
+            {
+              "effects": {
+                "health": -30,
+                "science": -0.1
+              },
+              "text": "La batería ({batteryWh} Wh de {eclipseNeedWh} necesarios) se agotó en plena sombra y la computadora se reinició (−30 de salud)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "comm-loss",
+      "title": "Pérdida de señal",
+      "phase": "cruise",
+      "tags": [
+        "all"
+      ],
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "La Red de Espacio Profundo (DSN) no recibe la señal de tu nave desde hace 6 horas. Parece un fallo de apuntamiento de la antena.",
+      "lesson": "Las naves llevan varias antenas: a Galileo no se le abrió la antena principal y salvó la misión con la de baja ganancia.",
+      "choices": [
+        {
+          "label": "Cambiar a la antena de respaldo",
+          "outcomes": [
+            {
+              "when": "comms>=2",
+              "effects": {
+                "science": -0.02
+              },
+              "text": "Tu segunda antena restableció el contacto en minutos. ¡La redundancia funciona!"
+            },
+            {
+              "effects": {
+                "science": -0.12
+              },
+              "text": "No había antena de respaldo: pasaron días hasta recuperar el enlace (−12 % de ciencia)."
+            }
+          ]
+        },
+        {
+          "label": "Reiniciar la computadora",
+          "outcomes": [
+            {
+              "when": "health>=60",
+              "effects": {
+                "science": -0.06
+              },
+              "text": "El reinicio funcionó, pero perdiste los datos guardados (−6 % de ciencia)."
+            },
+            {
+              "effects": {
+                "health": -15,
+                "science": -0.06
+              },
+              "text": "Con la nave dañada, el reinicio falló una vez antes de funcionar (−15 de salud)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wheel",
+      "title": "Falla de una rueda de reacción",
+      "phase": "science",
+      "tags": [
+        "all"
+      ],
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "Una de las ruedas que orientan la nave se atascó. Sin ella, apuntar los instrumentos con precisión es difícil.",
+      "lesson": "El telescopio Kepler perdió dos ruedas de reacción en 2013; la NASA lo rescató con la misión K2 usando la presión de la luz solar para estabilizarlo.",
+      "choices": [
+        {
+          "label": "Orientar con propulsores (60 m/s)",
+          "outcomes": [
+            {
+              "when": "deltaVMargin>=60",
+              "effects": {
+                "deltaV": 60
+              },
+              "text": "Gastaste 60 m/s de combustible de reserva y seguiste observando."
+            },
+            {
+              "effects": {
+                "health": -10,
+                "science": -0.2
+              },
+              "text": "No tenías combustible de reserva: la nave quedó mal orientada (−20 % de ciencia)."
+            }
+          ]
+        },
+        {
+          "label": "Reducir las observaciones",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.15
+              },
+              "text": "Operaste en modo reducido el resto de la misión (−15 % de ciencia)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asteroid",
+      "title": "Asteroide a la vista: {asteroid}",
+      "phase": "science",
+      "tags": [
+        "near-earth"
+      ],
+      "feed": "neows",
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "NASA NeoWs reporta que {asteroid} (~{size} m) pasará a {distance} distancias lunares de la Tierra el {date}.",
+      "lesson": "La NASA vigila miles de asteroides cercanos. Ninguno conocido representa un riesgo importante de impacto en los próximos 100 años.",
+      "choices": [
+        {
+          "label": "Reorientar instrumentos para observarlo",
+          "outcomes": [
+            {
+              "when": "has.camera>=1",
+              "effects": {
+                "science": 0.1
+              },
+              "text": "¡Imágenes únicas del asteroide! +10 % de ciencia."
+            },
+            {
+              "when": "has.spectrometer>=1",
+              "effects": {
+                "science": 0.05
+              },
+              "text": "Sin cámara, el espectrómetro midió su composición: +5 %."
+            },
+            {
+              "effects": {},
+              "text": "No tenías instrumentos adecuados para observarlo."
+            }
+          ]
+        },
+        {
+          "label": "Seguir el plan",
+          "outcomes": [
+            {
+              "effects": {},
+              "text": "Seguiste con tu plan. Sin cambios."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "radiation",
+      "title": "Cinturones de radiación de Júpiter",
+      "phase": "science",
+      "tags": [
+        "jupiter"
+      ],
+      "weight": 4,
+      "timeoutChoice": 1,
+      "text": "Tu órbita cruza los cinturones de radiación más intensos del Sistema Solar. Ahí está la mejor ciencia… y el mayor peligro.",
+      "lesson": "Juno protege su electrónica dentro de una bóveda de titanio de casi 200 kg para resistir la radiación de Júpiter.",
+      "choices": [
+        {
+          "label": "Pasar en modo seguro",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.1
+              },
+              "text": "Protegiste la electrónica pero perdiste observaciones (−10 %)."
+            }
+          ]
+        },
+        {
+          "label": "Observar de cerca",
+          "outcomes": [
+            {
+              "when": "has.magnetometer>=1",
+              "effects": {
+                "health": -20,
+                "science": 0.2
+              },
+              "text": "Tu magnetómetro midió el corazón del campo magnético: +20 % de ciencia, −20 de salud."
+            },
+            {
+              "effects": {
+                "health": -20
+              },
+              "text": "Sin magnetómetro, arriesgaste la nave para obtener poco (−20 de salud)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cold",
+      "title": "Frío del espacio profundo",
+      "phase": "cruise",
+      "tags": [
+        "deep-space"
+      ],
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "Lejos del Sol la nave se enfría por debajo de −150 °C. Los calentadores necesitan energía extra para que el combustible no se congele.",
+      "lesson": "Los diseños reales dejan un margen de energía del 10–30 %: siempre aparece un consumo que no estaba en el plan.",
+      "choices": [
+        {
+          "label": "Apagar un instrumento para los calentadores",
+          "outcomes": [
+            {
+              "when": "powerMargin>=60",
+              "effects": {
+                "science": -0.03
+              },
+              "text": "Tenías {powerMargin} W de margen: no hacía falta, pero no hubo riesgo."
+            },
+            {
+              "effects": {
+                "science": -0.08
+              },
+              "text": "Sin margen de energía, apagar un instrumento salvó el combustible (−8 % de ciencia)."
+            }
+          ]
+        },
+        {
+          "label": "Encender calentadores sin apagar nada",
+          "outcomes": [
+            {
+              "when": "powerMargin>=60",
+              "effects": {},
+              "text": "Tu margen de {powerMargin} W alimentó los calentadores sin problemas."
+            },
+            {
+              "effects": {
+                "health": -25
+              },
+              "text": "Sin margen de energía, parte del combustible se congeló (−25 de salud)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dust",
+      "title": "Tormenta global de polvo",
+      "phase": "science",
+      "tags": [
+        "mars"
+      ],
+      "weight": 3,
+      "timeoutChoice": 1,
+      "text": "Una tormenta de polvo cubre todo Marte, como la que apagó al rover Opportunity en 2018. La superficie desaparece de las fotos.",
+      "lesson": "La tormenta global de 2018 cubrió Marte durante meses y terminó con Opportunity, que dependía de paneles solares.",
+      "choices": [
+        {
+          "label": "Estudiar la tormenta con el espectrómetro",
+          "outcomes": [
+            {
+              "when": "has.spectrometer>=1",
+              "effects": {
+                "science": 0.08
+              },
+              "text": "¡Datos valiosos sobre la atmósfera marciana! +8 % de ciencia."
+            },
+            {
+              "effects": {
+                "science": -0.1
+              },
+              "text": "Sin espectrómetro no pudiste estudiarla (−10 % de ciencia)."
+            }
+          ]
+        },
+        {
+          "label": "Esperar a que se despeje",
+          "outcomes": [
+            {
+              "effects": {
+                "science": -0.1
+              },
+              "text": "Semanas sin poder observar la superficie (−10 % de ciencia)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "software",
+      "title": "Actualización de software",
+      "phase": "cruise",
+      "tags": [
+        "all"
+      ],
+      "weight": 1,
+      "timeoutChoice": 1,
+      "text": "Los ingenieros prepararon un parche que comprime mejor los datos científicos. Instalarlo exige reiniciar la nave.",
+      "lesson": "Las naves se reprograman en vuelo: en 2024 la NASA reparó por software la memoria de Voyager 1 a más de 24 000 millones de km.",
+      "choices": [
+        {
+          "label": "Instalar el parche",
+          "outcomes": [
+            {
+              "when": "health>=50",
+              "effects": {
+                "science": 0.08
+              },
+              "text": "El parche funcionó: más ciencia por cada bit enviado (+8 %)."
+            },
+            {
+              "effects": {
+                "health": -10
+              },
+              "text": "La nave dañada no toleró el reinicio (−10 de salud)."
+            }
+          ]
+        },
+        {
+          "label": "No arriesgar",
+          "outcomes": [
+            {
+              "effects": {},
+              "text": "Mantuviste el software probado. Sin cambios."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micrometeoroid",
+      "title": "Impacto de micrometeoroide",
+      "phase": "cruise",
+      "tags": [
+        "all"
+      ],
+      "weight": 2,
+      "timeoutChoice": 1,
+      "text": "Un grano de polvo a 20 km/s golpeó la nave. Los sensores detectan una pequeña fuga de propelente.",
+      "lesson": "Las naves llevan escudos Whipple y tanques redundantes para sobrevivir a los micrometeoroides.",
+      "choices": [
+        {
+          "label": "Aislar el tanque afectado",
+          "outcomes": [
+            {
+              "when": "count.tank>=2",
+              "effects": {
+                "deltaV": 80
+              },
+              "text": "Tenías otro tanque: aislaste la fuga y perdiste sólo 80 m/s de Δv."
+            },
+            {
+              "effects": {
+                "deltaV": 150
+              },
+              "text": "Con un solo tanque, la fuga te costó 150 m/s de Δv."
+            }
+          ]
+        },
+        {
+          "label": "Ignorarlo",
+          "outcomes": [
+            {
+              "effects": {
+                "deltaV": 250,
+                "health": -5
+              },
+              "text": "La fuga siguió varios días: −250 m/s de Δv."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
