@@ -15,7 +15,9 @@ import type { Apod, Asteroid, Body, EarthEvent, EnvData, SolarEvent } from '../s
 
 const NASA = 'https://api.nasa.gov';
 const HORIZONS = 'https://ssd.jpl.nasa.gov/api/horizons.api';
-const TIMEOUT_MS = 8000;
+const TIMEOUT_MS = 12000;
+/** Servicio original de DONKI (CCMC/NASA Goddard): no necesita clave y suele ser más rápido. */
+const CCMC = 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get';
 
 export interface ApiResult {
   status: number;
@@ -34,6 +36,8 @@ export async function handleApi(route: string, params: URLSearchParams, apiKey =
         return ok(await neows(apiKey));
       case 'eonet':
         return ok(await eonet());
+      case 'status':
+        return ok(await status(apiKey));
       case 'horizons': {
         const body = params.get('body') as Body | null;
         if (!body || !['earth', 'moon', 'mars', 'jupiter'].includes(body)) {
@@ -52,8 +56,8 @@ export async function handleApi(route: string, params: URLSearchParams, apiKey =
 
 const ok = (body: unknown): ApiResult => ({ status: 200, body });
 
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+async function getJson<T>(url: string, timeout = TIMEOUT_MS): Promise<T> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(timeout), headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`HTTP ${res.status} en ${url.replace(/api_key=[^&]+/, 'api_key=***')}`);
   return (await res.json()) as T;
 }
@@ -72,11 +76,21 @@ interface DonkiGst { startTime: string; allKpIndex?: { kpIndex: number }[] }
 
 export async function donki(key: string): Promise<{ flares: SolarEvent[]; cmes: SolarEvent[]; storms: SolarEvent[] }> {
   const range = `startDate=${daysAgo(120)}&endDate=${daysAgo(0)}`;
-  const [flr, cme, gst] = await Promise.all([
-    getJson<DonkiFlare[]>(`${NASA}/DONKI/FLR?${range}&api_key=${key}`),
-    getJson<DonkiCme[]>(`${NASA}/DONKI/CMEAnalysis?${range}&mostAccurateOnly=true&speed=700&api_key=${key}`),
-    getJson<DonkiGst[]>(`${NASA}/DONKI/GST?${range}&api_key=${key}`),
+  // Cada consulta es independiente: si una falla o tarda, las demás siguen.
+  // Primero el servicio original (CCMC); si falla, la copia de api.nasa.gov.
+  const fetchDonki = <T>(path: string) =>
+    getJson<T>(`${CCMC}/${path}`).catch(() => getJson<T>(`${NASA}/DONKI/${path}&api_key=${key}`));
+  const [flrR, cmeR, gstR] = await Promise.allSettled([
+    fetchDonki<DonkiFlare[]>(`FLR?${range}`),
+    fetchDonki<DonkiCme[]>(`CMEAnalysis?${range}&mostAccurateOnly=true&speed=700`),
+    fetchDonki<DonkiGst[]>(`GST?${range}`),
   ]);
+  if ([flrR, cmeR, gstR].every((r) => r.status === 'rejected')) {
+    throw new Error(`DONKI no respondió: ${(flrR as PromiseRejectedResult).reason}`);
+  }
+  const flr = flrR.status === 'fulfilled' ? flrR.value : [];
+  const cme = cmeR.status === 'fulfilled' ? cmeR.value : [];
+  const gst = gstR.status === 'fulfilled' ? gstR.value : [];
 
   const flares = (flr ?? [])
     .filter((f) => /^[MX]/.test(f.classType ?? ''))
@@ -160,6 +174,36 @@ export async function neows(key: string): Promise<Asteroid[]> {
     }))
     .sort((a, b) => a.missLunar - b.missLunar)
     .slice(0, 10);
+}
+
+/* ------------------------------------------------------------------ */
+/* Diagnóstico: GET /api/status → qué fuentes responden y en cuánto     */
+/* ------------------------------------------------------------------ */
+
+export async function status(key: string): Promise<Record<string, unknown>> {
+  const probe = async (fn: () => Promise<unknown>) => {
+    const t0 = Date.now();
+    try {
+      const v = await fn();
+      return { ok: true, ms: Date.now() - t0, items: Array.isArray(v) ? v.length : undefined };
+    } catch (e) {
+      return { ok: false, ms: Date.now() - t0, error: String(e).replace(/api_key=[^&\s]+/g, 'api_key=***').slice(0, 200) };
+    }
+  };
+  const [donkiCcmc, donkiApi, apodR, neowsR, eonetR, horizonsR] = await Promise.all([
+    probe(() => getJson(`${CCMC}/FLR?startDate=${daysAgo(30)}&endDate=${daysAgo(0)}`)),
+    probe(() => getJson(`${NASA}/DONKI/FLR?startDate=${daysAgo(30)}&endDate=${daysAgo(0)}&api_key=${key}`)),
+    probe(() => apod(key)),
+    probe(() => neows(key)),
+    probe(() => eonet()),
+    probe(() => horizons('mars')),
+  ]);
+  return {
+    // Sólo decimos SI hay clave, nunca cuál es.
+    apiKeyConfigured: !!key && key !== 'DEMO_KEY',
+    node: process.version,
+    donkiCcmc, donkiApi, apod: apodR, neows: neowsR, eonet: eonetR, horizons: horizonsR,
+  };
 }
 
 /* ------------------------------------------------------------------ */

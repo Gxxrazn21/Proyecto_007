@@ -58,11 +58,15 @@ export class MenuScene extends Phaser.Scene {
     const t = text(this, 24, 210, 'Conectando con la NASA…', { color: 'steel', wrap: 300 });
     const dot = this.add.rectangle(18, 214, 3, 3, C.steel);
     GameState.feeds?.then((f) => {
-      const live = f.flares[0]?.source === 'donki';
+      // En vivo si CUALQUIER fuente respondió (DONKI, NeoWs o EONET).
+      const live = f.flares[0]?.source === 'donki' || f.asteroids[0]?.source === 'neows' || f.earth[0]?.source === 'eonet';
+      const donkiLive = f.flares[0]?.source === 'donki';
       // Clima espacial de hoy: la llamarada más reciente que registró DONKI.
       const latest = [...f.flares].sort((a, b) => b.date.localeCompare(a.date))[0];
       t.setText(live
-        ? `NASA en vivo · última llamarada fuerte: ${latest?.label ?? '—'} (${latest ? formatDate(latest.date) : 'sin datos'})`
+        ? donkiLive
+          ? `NASA en vivo · última llamarada fuerte: ${latest?.label ?? '—'} (${latest ? formatDate(latest.date) : 'sin datos'})`
+          : 'Datos de la NASA en vivo'
         : 'Sin conexión: usando datos históricos reales');
       t.setColor(live ? '#7fd46b' : '#efc65c');
       dot.setFillStyle(live ? C.ok : C.foilLt);

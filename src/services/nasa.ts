@@ -33,13 +33,13 @@ async function withFallback<T>(name: string, live: () => Promise<T>, offline: ()
 
 /** Distancias reales del destino: JPL Horizons → efemérides offline. */
 export function getEnv(body: Body): Promise<EnvData> {
-  return withFallback('horizons', () => getJson<EnvData>(`api/horizons?body=${body}`, 8000), () => offlineEnv(body));
+  return withFallback('horizons', () => getJson<EnvData>(`api/horizons?body=${body}`, 15000), () => offlineEnv(body));
 }
 
 /** Clima espacial y asteroides. Mezcla datos en vivo con históricos si hay pocos. */
 export async function getFeeds(): Promise<Feeds> {
   const offline = getJson<{ flares: SolarEvent[]; cmes: SolarEvent[]; storms: SolarEvent[] }>('data/fallback/donki.json');
-  const donki = await withFallback('donki', () => getJson<Awaited<typeof offline>>('api/donki', 9000), () => offline);
+  const donki = await withFallback('donki', () => getJson<Awaited<typeof offline>>('api/donki', 25000), () => offline);
   const asteroids = await withFallback(
     'neows',
     () => getJson<Asteroid[]>('api/neows'),
