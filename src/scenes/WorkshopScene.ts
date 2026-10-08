@@ -323,6 +323,7 @@ export class WorkshopScene extends Phaser.Scene {
     }
     d[slot.id] = mod.id;
     this.selectedSlot = null;
+    this.armed = null; // cada toque en el catálogo toma UNA pieza
     this.cameras.main.shake(60, 0.002);
   }
 
@@ -417,7 +418,7 @@ export class WorkshopScene extends Phaser.Scene {
     const g = this.add.graphics();
     g.fillStyle(C.hull).fillRect(0, 247, 480, 23);
     g.fillStyle(C.rivet).fillRect(0, 247, 480, 1);
-    this.info = text(this, 6, 250, '', { wrap: 300 });
+    this.info = text(this, 6, 250, '');
     this.infoSub = text(this, 6, 260, '', { color: 'steel' });
     this.removeBtn = new Button(this, 300, 251, 46, 14, 'Quitar', () => {
       if (this.selectedSlot) this.removeFrom(this.selectedSlot);
@@ -440,8 +441,8 @@ export class WorkshopScene extends Phaser.Scene {
     if (m.dataKbps) parts.push(`${fmtKbps(m.dataKbps)} de datos`);
     if (m.science) parts.push(`ciencia ${m.science}`);
     this.infoSub.setText(extra ?? parts.join(' · '));
-    // La descripción larga se recorta a una línea para no tapar los botones.
-    if (this.info.height > 10) this.info.setText(`${m.name}: ${m.description.split('.')[0]}.`);
+    fitLine(this.info, 290);
+    fitLine(this.infoSub, 290);
   }
 
   private refresh(): void {
@@ -454,6 +455,7 @@ export class WorkshopScene extends Phaser.Scene {
     this.launchBtn.setEnabled(!!GameState.design.core);
     if (!this.armed && !this.selectedSlot && !this.drag) {
       this.info.setText(GameState.design.core ? 'Toca un módulo instalado para quitarlo, o arrástralo fuera de la nave.' : 'Arrastra módulos desde la izquierda, o tócalos y luego toca una ranura.');
+      fitLine(this.info, 290);
       this.infoSub.setText(`Distancias de hoy: ${GameState.env!.sunDistanceAU.toFixed(2)} UA del Sol · fuente: ${GameState.env!.source === 'horizons' ? 'JPL Horizons' : 'efemérides JPL offline'}`);
     }
   }
@@ -493,4 +495,11 @@ export class WorkshopScene extends Phaser.Scene {
     c.add(new Button(this, 112, by, 120, 16, 'Volver al taller', () => c.destroy(), 'secondary'));
     c.add(new Button(this, 248, by, 120, 16, 'Lanzar de todos modos', () => goTo(this, 'Launch'), 'danger'));
   }
+}
+
+/** Recorta un texto a una sola línea de `maxW` píxeles, terminando en "…". */
+function fitLine(t: Phaser.GameObjects.Text, maxW: number): void {
+  if (t.width <= maxW) return;
+  const words = t.text.split(' ');
+  while (words.length > 1 && t.setText(`${words.join(' ')}…`).width > maxW) words.pop();
 }
