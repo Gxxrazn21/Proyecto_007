@@ -4,6 +4,7 @@
  */
 import Phaser from 'phaser';
 import { C, FONT, PAL, type PalKey } from '../art/palette';
+import { BASE_H, VIEW, frameCamera } from './view';
 
 /* ------------------------------------------------------------------ */
 /* Texto                                                                */
@@ -53,6 +54,8 @@ export function drawPanel(
     [x + w - chamfer, y + h - 1], [x + chamfer, y + h - 1], [x + 1, y + h - chamfer], [x + 1, y + chamfer],
   ].map(([a, b]) => new Phaser.Math.Vector2(a, b));
   g.fillStyle(C[fill]).fillPoints(inner, true);
+  // Brillo sutil en el borde superior: da volumen a la placa.
+  g.fillStyle(C.frost, 0.08).fillRect(x + chamfer, y + 1, w - chamfer * 2, 1);
 }
 
 export function panel(scene: Phaser.Scene, x: number, y: number, w: number, h: number, fill: PalKey = 'hull', border: PalKey = 'rivet'): Phaser.GameObjects.Graphics {
@@ -212,11 +215,31 @@ export class Gauge extends Phaser.GameObjects.Container {
 /* Utilidades                                                           */
 /* ------------------------------------------------------------------ */
 
-/** Fondo estándar: estrellas + leve desplazamiento (parallax). */
-export function starfield(scene: Phaser.Scene, drift = 0.02): Phaser.GameObjects.TileSprite {
-  const t = scene.add.tileSprite(0, 0, 480, 270, 'bg-stars').setOrigin(0);
+/** Fondo estándar: estrellas de borde a borde, deriva lenta y algunas que titilan. */
+export function starfield(scene: Phaser.Scene, drift = 0.02, alpha = 1): Phaser.GameObjects.TileSprite {
+  const t = scene.add.tileSprite(VIEW.left, 0, VIEW.width, BASE_H, 'bg-stars').setOrigin(0).setAlpha(alpha);
   scene.events.on('update', () => (t.tilePositionX += drift));
+  if (!prefersReducedMotion()) {
+    for (let i = 0; i < 28; i++) {
+      const star = scene.add.image(
+        Phaser.Math.Between(VIEW.left, VIEW.right), Phaser.Math.Between(18, BASE_H - 4), 'fx-dot',
+      ).setAlpha(0).setTint(i % 5 === 0 ? C.foilLt : C.frost);
+      scene.tweens.add({
+        targets: star, alpha: { from: 0, to: alpha }, duration: Phaser.Math.Between(700, 1600),
+        yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 4000), repeatDelay: Phaser.Math.Between(1500, 6000),
+      });
+    }
+  }
   return t;
+}
+
+/** Fondo oscuro que cubre toda la pantalla (para modales). Bloquea los clics de detrás. */
+export function shade(scene: Phaser.Scene, alpha = 0.85): Phaser.GameObjects.Rectangle {
+  return scene.add.rectangle(VIEW.left, 0, VIEW.width, BASE_H, C.space, alpha).setOrigin(0).setInteractive();
+}
+
+export function prefersReducedMotion(): boolean {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
 /** Transición entre escenas con cortina. */
@@ -226,17 +249,18 @@ export function goTo(scene: Phaser.Scene, key: string, data?: object): void {
 }
 
 export function fadeIn(scene: Phaser.Scene): void {
+  frameCamera(scene);
   scene.cameras.main.fadeIn(220, 15, 19, 48);
 }
 
 /** Barra superior común: título de la fase + migas del flujo de juego. */
 export function header(scene: Phaser.Scene, step: number, title: string): void {
   const g = scene.add.graphics();
-  g.fillStyle(C.hull).fillRect(0, 0, 480, 15);
-  g.fillStyle(C.rivet).fillRect(0, 15, 480, 1);
-  text(scene, 6, 3, title, { color: 'frost' });
+  g.fillStyle(C.hull).fillRect(VIEW.left, 0, VIEW.width, 15);
+  g.fillStyle(C.rivet).fillRect(VIEW.left, 15, VIEW.width, 1);
+  text(scene, VIEW.left + 6, 3, title, { color: 'frost' });
   const steps = ['Briefing', 'Taller', 'Lanzamiento', 'Operación', 'Reporte'];
-  let x = 474;
+  let x = VIEW.right - 6;
   for (let i = steps.length - 1; i >= 0; i--) {
     const active = i === step;
     const done = i < step;

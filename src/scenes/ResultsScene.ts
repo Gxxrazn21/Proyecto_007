@@ -9,7 +9,7 @@ import Phaser from 'phaser';
 import { C, type PalKey } from '../art/palette';
 import { GameState } from '../state/GameState';
 import { computeStats, fmtKbps, fmtMoney, type DesignStats } from '../systems/calc';
-import { Button, drawPanel, fadeIn, goTo, header, text } from '../ui/ui';
+import { Button, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
 import type { Mission, ReportEntry } from '../types';
 
 const LIST_X = 186;
@@ -27,7 +27,7 @@ export class ResultsScene extends Phaser.Scene {
 
   create(): void {
     fadeIn(this);
-    this.add.image(0, 0, 'bg-stars').setOrigin(0).setAlpha(0.5);
+    starfield(this, 0.02, 0.5);
     header(this, 4, 'Reporte de misión');
 
     const m = GameState.mission!;

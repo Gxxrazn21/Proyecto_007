@@ -6,7 +6,8 @@ import Phaser from 'phaser';
 import { C } from '../art/palette';
 import { GameState } from '../state/GameState';
 import { buildCraft } from '../ui/craft';
-import { Button, drawPanel, fadeIn, goTo, panel, starfield, text } from '../ui/ui';
+import { Button, drawPanel, fadeIn, goTo, panel, prefersReducedMotion, shade, starfield, text } from '../ui/ui';
+import { VIEW } from '../ui/view';
 
 const DEMO_CRAFT = { core: 'bus', pwr1: 'solar_s', pwr2: 'solar_s', ant1: 'hga', eng: 'engine', ins1: 'camera', ins2: 'magnetometer' };
 
@@ -22,12 +23,13 @@ export class MenuScene extends Phaser.Scene {
     starfield(this, 0.03);
 
     // Tierra gigante en la esquina, girando muy despacio.
-    const earth = this.add.image(400, 290, 'pl-earth-xl');
+    const earth = this.add.image(VIEW.right - 80, 290, 'pl-earth-xl');
     this.tweens.add({ targets: earth, angle: 360, duration: 600_000, repeat: -1 });
 
     // Nave orbitando sobre el horizonte.
-    const craft = buildCraft(this, 300, 120, DEMO_CRAFT);
-    this.tweens.add({ targets: craft, x: 340, y: 108, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    const cx = Math.round((VIEW.right + 200) / 2);
+    const craft = buildCraft(this, cx - 20, 120, DEMO_CRAFT);
+    this.tweens.add({ targets: craft, x: cx + 20, y: 108, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     this.tweens.add({ targets: craft, angle: 4, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     // Título
@@ -42,13 +44,15 @@ export class MenuScene extends Phaser.Scene {
     this.dataStatus();
     this.apodCard();
 
-    text(this, 476, 260, 'NASA Space Apps Challenge 2026', { align: 'right', color: 'rivet' });
+    text(this, 24, 258, 'NASA Space Apps Challenge 2026', { color: 'rivet' });
+    this.fullscreenButton();
+    this.shootingStars();
   }
 
   /** Línea que dice si estamos usando datos en vivo o el respaldo offline. */
   private dataStatus(): void {
-    const t = text(this, 24, 178, 'Conectando con la NASA…', { color: 'steel' });
-    const dot = this.add.rectangle(18, 182, 3, 3, C.steel);
+    const t = text(this, 24, 192, 'Conectando con la NASA…', { color: 'steel' });
+    const dot = this.add.rectangle(18, 196, 3, 3, C.steel);
     GameState.feeds?.then((f) => {
       const live = f.flares[0]?.source === 'donki';
       t.setText(live ? 'Datos de la NASA en vivo' : 'Sin conexión: usando datos históricos reales');
@@ -61,23 +65,23 @@ export class MenuScene extends Phaser.Scene {
   private apodCard(): void {
     GameState.apod?.then((a) => {
       if (!a.url) return;
-      panel(this, 18, 206, 196, 44, 'hull', 'rivet');
-      text(this, 26, 212, 'Imagen astronómica del día · APOD', { color: 'steel' });
-      text(this, 26, 223, a.title, { wrap: 140 });
-      new Button(this, 172, 226, 34, 14, 'Ver', () => window.open(a.url, '_blank', 'noopener'));
+      panel(this, 18, 208, 196, 44, 'hull', 'rivet');
+      text(this, 26, 214, 'Imagen astronómica del día · APOD', { color: 'steel' });
+      text(this, 26, 225, a.title, { wrap: 140 });
+      new Button(this, 172, 228, 34, 14, 'Ver', () => window.open(a.url, '_blank', 'noopener'));
     });
   }
 
   private openModal(title: string, body: string): void {
     this.modal?.destroy();
     const c = this.add.container(0, 0).setDepth(10);
-    const shade = this.add.rectangle(0, 0, 480, 270, C.space, 0.85).setOrigin(0).setInteractive();
+    const bg = shade(this);
     const p = this.add.graphics();
     drawPanel(p, 60, 24, 360, 222, 'hull', 'steel');
     const t1 = text(this, 74, 34, title, { font: 'title', size: 16, color: 'foilLt' });
     const t2 = text(this, 74, 58, body, { wrap: 332, lineSpacing: 3 });
     const close = new Button(this, 340, 222, 70, 16, 'Cerrar', () => c.destroy(), 'primary');
-    c.add([shade, p, t1, t2, close]);
+    c.add([bg, p, t1, t2, close]);
     this.modal = c;
   }
 
@@ -109,5 +113,35 @@ export class MenuScene extends Phaser.Scene {
         'Fuentes tipográficas: Pixelify Sans y Tiny5 (SIL Open Font License).',
       ].join('\n'),
     );
+  }
+
+  /** Pantalla completa (Android y PC): más espacio = texto más grande. */
+  private fullscreenButton(): void {
+    if (!this.sys.game.device.fullscreen.available) return;
+    const b = new Button(this, 24, 170, 120, 14, this.scale.isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa', () => {
+      if (this.scale.isFullscreen) {
+        this.scale.stopFullscreen();
+      } else {
+        this.scale.startFullscreen();
+        // En móviles, fijar la orientación horizontal (si el navegador lo permite).
+        (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.('landscape').catch(() => undefined);
+      }
+    }, 'ghost');
+    this.scale.on('enterfullscreen', () => b.active && b.setText('Salir de pantalla completa'));
+    this.scale.on('leavefullscreen', () => b.active && b.setText('Pantalla completa'));
+  }
+
+  /** Una estrella fugaz de vez en cuando: el único adorno animado del menú. */
+  private shootingStars(): void {
+    if (prefersReducedMotion()) return;
+    const launch = () => {
+      const x = Phaser.Math.Between(VIEW.left + 140, VIEW.right - 40);
+      const star = this.add.rectangle(x, 20, 6, 1, C.frost).setAngle(-28).setAlpha(0);
+      this.tweens.add({
+        targets: star, x: x - 70, y: 58, alpha: { from: 1, to: 0 }, duration: 700, ease: 'Quad.in',
+        onComplete: () => star.destroy(),
+      });
+    };
+    this.time.addEvent({ delay: 5200, loop: true, callback: launch });
   }
 }

@@ -7,7 +7,8 @@ import { C } from '../art/palette';
 import { GameState } from '../state/GameState';
 import { computeStats, fmtMass, fmtMoney, type DesignStats } from '../systems/calc';
 import { buildCraft } from '../ui/craft';
-import { Button, drawPanel, fadeIn, goTo, header, text } from '../ui/ui';
+import { Button, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
+import { VIEW } from '../ui/view';
 import type { Destination, Rocket } from '../types';
 
 const DEST_NAME: Record<Destination, string> = {
@@ -32,14 +33,14 @@ export class LaunchScene extends Phaser.Scene {
     const m = GameState.mission!;
     this.stats = computeStats(GameState.design, GameState.db.catalog, m, GameState.env!, GameState.db.rockets);
 
-    this.add.image(0, 0, 'bg-stars').setOrigin(0).setAlpha(0.6);
+    starfield(this, 0.02, 0.6);
     header(this, 2, `Elige el cohete · destino: ${DEST_NAME[m.destination]}`);
 
     text(this, 8, 22, `Tu nave pesa ${fmtMass(this.stats.wetMass)} con combustible y cuesta ${fmtMoney(this.stats.craftCost)}.`, { color: 'frost' });
     this.stats.rockets.forEach((fit, i) => this.rocketCard(fit.rocket, i));
 
     const g = this.add.graphics();
-    g.fillStyle(C.hull).fillRect(0, 247, 480, 23).fillStyle(C.rivet).fillRect(0, 247, 480, 1);
+    g.fillStyle(C.hull).fillRect(VIEW.left, 247, VIEW.width, 23).fillStyle(C.rivet).fillRect(VIEW.left, 247, VIEW.width, 1);
     this.summary = text(this, 6, 251, 'Elige un cohete', { wrap: 300 });
     new Button(this, 320, 251, 70, 14, 'Volver al taller', () => goTo(this, 'Workshop'), 'ghost');
     this.goBtn = new Button(this, 396, 250, 80, 16, '¡Lanzar!', () => this.launch(), 'primary').setEnabled(false);
@@ -137,23 +138,24 @@ export class LaunchScene extends Phaser.Scene {
   private animateLaunch(r: Rocket, fails: boolean): void {
     const WORLD_H = 1400;
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, 480, WORLD_H);
+    const L = VIEW.left, W = VIEW.width;
+    cam.setBounds(L, 0, W, WORLD_H);
 
     // Cielo por bandas: azul abajo → espacio arriba (tramado entre bandas).
     const sky = this.add.graphics();
     const bands = [C.space, C.hull, C.rivet, C.cellDk, C.cell];
     const bandH = WORLD_H / bands.length;
-    bands.forEach((c, i) => sky.fillStyle(c).fillRect(0, i * bandH, 480, bandH));
+    bands.forEach((c, i) => sky.fillStyle(c).fillRect(L, i * bandH, W, bandH));
     for (let i = 1; i < bands.length; i++) {
-      for (let y = 0; y < 6; y++) for (let x = (y % 2) * 2; x < 480; x += 4) sky.fillStyle(bands[i - 1]).fillRect(x, i * bandH + y, 2, 1);
+      for (let y = 0; y < 6; y++) for (let x = L + (y % 2) * 2; x < L + W; x += 4) sky.fillStyle(bands[i - 1]).fillRect(x, i * bandH + y, 2, 1);
     }
-    this.add.image(0, 0, 'bg-stars').setOrigin(0).setAlpha(0.9);
-    this.add.image(0, 270, 'bg-stars').setOrigin(0).setAlpha(0.4).setFlipY(true);
+    this.add.tileSprite(L, 0, W, 270, 'bg-stars').setOrigin(0).setAlpha(0.9);
+    this.add.tileSprite(L, 270, W, 270, 'bg-stars').setOrigin(0).setAlpha(0.4).setFlipY(true);
 
     // Suelo y plataforma
     const groundY = WORLD_H - 20;
-    this.add.rectangle(0, groundY, 480, 20, C.hull).setOrigin(0);
-    this.add.rectangle(0, groundY, 480, 1, C.steel).setOrigin(0);
+    this.add.rectangle(L, groundY, W, 20, C.hull).setOrigin(0);
+    this.add.rectangle(L, groundY, W, 1, C.steel).setOrigin(0);
     this.add.rectangle(212, groundY - 4, 56, 4, C.moonDk).setOrigin(0);
     this.add.image(222, groundY - 4, 'tower').setOrigin(0.5, 1);
 
@@ -172,8 +174,8 @@ export class LaunchScene extends Phaser.Scene {
       alpha: { start: 0.9, end: 0 }, frequency: 30, emitting: false,
     });
 
-    const countdown = text(this, 240, 0, '', { font: 'title', size: 32, color: 'foilLt', align: 'center' }).setScrollFactor(0).setY(60);
-    const caption = text(this, 240, 240, '', { align: 'center', color: 'frost', wrap: 400 }).setScrollFactor(0);
+    const countdown = text(this, Math.round(W / 2), 0, '', { font: 'title', size: 32, color: 'foilLt', align: 'center' }).setScrollFactor(0).setY(60);
+    const caption = text(this, Math.round(W / 2), 240, '', { align: 'center', color: 'frost', wrap: 400 }).setScrollFactor(0);
     const steps = ['T-3', 'T-2', 'T-1', '¡Despegue!'];
     steps.forEach((s, i) => this.time.delayedCall(i * 700, () => {
       countdown.setText(s);

@@ -16,7 +16,8 @@ import { GameState } from '../state/GameState';
 import { computeStats, fmtKbps, fmtMass, fmtMoney, type DesignStats } from '../systems/calc';
 import { offlineEnv } from '../systems/ephemeris';
 import { SLOTS } from '../systems/slots';
-import { Button, Gauge, drawPanel, fadeIn, goTo, header, text } from '../ui/ui';
+import { Button, Gauge, drawPanel, fadeIn, goTo, header, shade, text } from '../ui/ui';
+import { VIEW } from '../ui/view';
 import type { ModuleCategory, ModuleDef, SlotDef } from '../types';
 
 /** Centro del bus dentro de la sala limpia. */
@@ -78,7 +79,7 @@ export class WorkshopScene extends Phaser.Scene {
       if (this.scene.isActive()) this.refresh();
     });
 
-    this.add.rectangle(0, 0, 480, 270, C.space).setOrigin(0);
+    this.add.rectangle(VIEW.left, 0, VIEW.width, 270, C.space).setOrigin(0);
     header(this, 1, `Taller · ${mission.name}`);
 
     this.buildCatalog();
@@ -121,7 +122,7 @@ export class WorkshopScene extends Phaser.Scene {
 
       const zone = this.add.zone(6, y, 108, 17).setOrigin(0).setInteractive({ cursor: 'grab' });
       zone.on('pointerdown', (p: Phaser.Input.Pointer) => {
-        this.drag = { mod: m, startX: p.x, startY: p.y };
+        this.drag = { mod: m, startX: p.worldX, startY: p.worldY };
       });
       zone.on('pointerover', () => !this.drag && !this.armed && this.showInfo(m));
     });
@@ -151,6 +152,13 @@ export class WorkshopScene extends Phaser.Scene {
     // Suelo de la sala limpia: cuadrícula que se pierde hacia arriba.
     for (let y = 30; y < 240; y += 12) g.fillStyle(C.hull, y > 140 ? 1 : 0.5).fillRect(122, y, 232, 1);
     for (let x = 126; x < 354; x += 12) g.fillStyle(C.hull, 0.5).fillRect(x, 22, 1, 220);
+    // Foco de luz sobre el suelo, bajo la nave (elipse tramada).
+    for (let y = -7; y <= 7; y++) {
+      for (let x = -70; x <= 70; x++) {
+        const d = (x / 70) ** 2 + (y / 7) ** 2;
+        if (d < 1 && (x + y) % 2 === 0) g.fillStyle(d < 0.45 ? C.rivet : C.hull).fillRect(CX + x, CY + 36 + y, 1, 1);
+      }
+    }
     // Bahía del compartimento interno
     drawPanel(g, CX - 54, CY + 52, 108, 28, 'hull', 'rivet');
     text(this, CX, CY + 82, 'Compartimento interno: baterías y tanques', { align: 'center', color: 'steel' });
@@ -165,7 +173,7 @@ export class WorkshopScene extends Phaser.Scene {
       const z = this.add.zone(CX + s.x, CY + s.y, w + 6, h + 6).setInteractive({ cursor: 'pointer' });
       z.on('pointerdown', (p: Phaser.Input.Pointer) => {
         const id = GameState.design[s.id];
-        if (id) this.drag = { mod: GameState.db.catalog.get(id)!, from: s.id, startX: p.x, startY: p.y };
+        if (id) this.drag = { mod: GameState.db.catalog.get(id)!, from: s.id, startX: p.worldX, startY: p.worldY };
       });
     }
   }
@@ -243,20 +251,20 @@ export class WorkshopScene extends Phaser.Scene {
 
   private onMove(p: Phaser.Input.Pointer): void {
     if (!this.drag || !p.isDown) return;
-    if (!this.drag.ghost && Phaser.Math.Distance.Between(p.x, p.y, this.drag.startX, this.drag.startY) > 3) {
+    if (!this.drag.ghost && Phaser.Math.Distance.Between(p.worldX, p.worldY, this.drag.startX, this.drag.startY) > 3) {
       this.armed = null;
-      this.drag.ghost = this.add.image(p.x, p.y, `mod-${this.drag.mod.id}`).setAlpha(0.85).setDepth(20);
+      this.drag.ghost = this.add.image(p.worldX, p.worldY, `mod-${this.drag.mod.id}`).setAlpha(0.85).setDepth(20);
       this.showInfo(this.drag.mod);
       this.drawCraft();
       this.drawRows();
     }
-    this.drag.ghost?.setPosition(Math.round(p.x), Math.round(p.y));
+    this.drag.ghost?.setPosition(Math.round(p.worldX), Math.round(p.worldY));
   }
 
   private onUp(p: Phaser.Input.Pointer): void {
     const drag = this.drag;
     this.drag = null;
-    const slot = this.slotAt(p.x, p.y);
+    const slot = this.slotAt(p.worldX, p.worldY);
 
     if (drag?.ghost) {
       // Fin de un arrastre.
@@ -322,9 +330,19 @@ export class WorkshopScene extends Phaser.Scene {
       return;
     }
     d[slot.id] = mod.id;
+    this.sparkle(CX + slot.x, CY + slot.y);
     this.selectedSlot = null;
     this.armed = null; // cada toque en el catálogo toma UNA pieza
     this.cameras.main.shake(60, 0.002);
+  }
+
+  /** Chispas doradas al instalar un módulo: confirma la acción. */
+  private sparkle(x: number, y: number): void {
+    const fx = this.add.particles(x, y, 'fx-spark', {
+      speed: { min: 20, max: 60 }, lifespan: 380, quantity: 10, alpha: { start: 1, end: 0 }, emitting: false,
+    }).setDepth(15);
+    fx.explode(10);
+    this.time.delayedCall(500, () => fx.destroy());
   }
 
   private removeFrom(slotId: string, moving = false): void {
@@ -416,8 +434,8 @@ export class WorkshopScene extends Phaser.Scene {
 
   private buildBottomBar(): void {
     const g = this.add.graphics();
-    g.fillStyle(C.hull).fillRect(0, 247, 480, 23);
-    g.fillStyle(C.rivet).fillRect(0, 247, 480, 1);
+    g.fillStyle(C.hull).fillRect(VIEW.left, 247, VIEW.width, 23);
+    g.fillStyle(C.rivet).fillRect(VIEW.left, 247, VIEW.width, 1);
     this.info = text(this, 6, 250, '');
     this.infoSub = text(this, 6, 260, '', { color: 'steel' });
     this.removeBtn = new Button(this, 300, 251, 46, 14, 'Quitar', () => {
@@ -482,12 +500,12 @@ export class WorkshopScene extends Phaser.Scene {
       return;
     }
     const c = this.add.container(0, 0).setDepth(40);
-    const shade = this.add.rectangle(0, 0, 480, 270, C.space, 0.85).setOrigin(0).setInteractive();
+    const bg = shade(this);
     const g = this.add.graphics();
     drawPanel(g, 100, 50, 280, 40 + problems.length * 12 + 40, 'hull', 'alert');
     const lines = problems.map((p) => `· ${p.label}: ${p.detail}`).join('\n');
     c.add([
-      shade, g,
+      bg, g,
       text(this, 112, 58, 'Tu nave tiene problemas', { font: 'title', size: 16, color: 'alert' }),
       text(this, 112, 80, lines, { wrap: 256, lineSpacing: 4 }),
     ]);

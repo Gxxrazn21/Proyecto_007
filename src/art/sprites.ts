@@ -243,11 +243,25 @@ function noise(seed: number) {
   };
 }
 
-function planet(s: Phaser.Scene, key: string, r: number, surface: (x: number, y: number) => Color): void {
-  if (r === 26) planet(s, `${key}-sm`, 11, surface); // versión para tarjetas
-  const size = r * 2 + 1;
+function planet(s: Phaser.Scene, key: string, r: number, surface: (x: number, y: number) => Color, halo?: Color): void {
+  if (r === 26) planet(s, `${key}-sm`, 11, surface, halo); // versión para tarjetas
+  const m = halo ? Math.max(2, Math.round(r * 0.06)) : 0; // margen para la atmósfera
+  const size = (r + m) * 2 + 1;
   makeTexture(s, key, size, size, (p) => {
-    p.disc(r, r, r, (dx, dy, d) => {
+    if (halo) {
+      // Atmósfera: anillo tramado, más visible del lado iluminado.
+      const R = r + m;
+      for (let y = -R; y <= R; y++) {
+        for (let x = -R; x <= R; x++) {
+          const d = Math.hypot(x, y);
+          if (d <= r || d > R) continue;
+          const lit = -(x * 0.65 + y * 0.55) / d;
+          if (lit > 0.1 || (lit > -0.4 && (x + y) % 2 === 0)) p.px(R + x, R + y, d < r + m / 2 + 0.5 ? halo : (x + y) % 2 ? halo : 'none');
+        }
+      }
+    }
+    const o = m;
+    p.disc(r + o, r + o, r, (dx, dy, d) => {
       // Terminador: la luz llega desde arriba a la izquierda.
       const lit = -(dx * 0.65 + dy * 0.55) + Math.sqrt(Math.max(0, 1 - d * d)) * 0.55;
       const x = Math.round(dx * r) + r, y = Math.round(dy * r) + r;
@@ -269,8 +283,8 @@ function planets(s: Phaser.Scene): void {
     if (Math.abs(y) > 0.86) return 'frost';
     return n1(x * 3.2 + 4, y * 3.2) * 0.75 + n2(x * 9, y * 9) * 0.25 > 0.55 ? 'land' : 'ocean';
   };
-  planet(s, 'pl-earth', 26, earth);
-  planet(s, 'pl-earth-xl', 110, earth); // horizonte del menú y del lanzamiento
+  planet(s, 'pl-earth', 26, earth, 'signal');
+  planet(s, 'pl-earth-xl', 110, earth, 'signal'); // horizonte del menú
 
   planet(s, 'pl-moon', 26, (x, y) => {
     const v = n2(x * 5, y * 5);

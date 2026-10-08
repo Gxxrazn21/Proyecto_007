@@ -8,7 +8,7 @@ import { C } from '../art/palette';
 import { GameState } from '../state/GameState';
 import { getEnv } from '../services/nasa';
 import { fmtMoney } from '../systems/calc';
-import { Button, drawPanel, fadeIn, goTo, header, text } from '../ui/ui';
+import { Button, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
 import type { EnvData, Mission } from '../types';
 
 /** Segundos que tarda la luz en recorrer 1 UA. */
@@ -26,7 +26,7 @@ export class BriefingScene extends Phaser.Scene {
 
   create(): void {
     fadeIn(this);
-    this.add.image(0, 0, 'bg-stars').setOrigin(0).setAlpha(0.6);
+    starfield(this, 0.02, 0.6);
     header(this, 0, 'Elige tu misión');
 
     const missions = GameState.db.missions;
