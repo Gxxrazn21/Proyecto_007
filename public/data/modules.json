@@ -1,0 +1,144 @@
+{
+  "_comment": "12 módulos. Masa en kg, costo en M$, potencia en W. Valores redondeados a partir de hardware real (ver 'source'). Edita aquí para balancear sin tocar código.",
+  "modules": [
+    {
+      "id": "bus",
+      "name": "Bus estructural",
+      "category": "bus",
+      "description": "Estructura, computadora, control térmico y de orientación. Sin bus no hay nave.",
+      "mass": 600,
+      "cost": 250,
+      "powerDraw": 180,
+      "source": "Orden de magnitud de buses de misiones medianas (LRO, MAVEN: 600–1 000 kg secos)."
+    },
+    {
+      "id": "solar_s",
+      "name": "Panel solar compacto",
+      "category": "power",
+      "description": "Barato y ligero. Genera 1 000 W cerca de la Tierra, pero su potencia cae con el cuadrado de la distancia al Sol.",
+      "mass": 50,
+      "cost": 30,
+      "powerDraw": 0,
+      "solarW1AU": 1000,
+      "source": "Celdas de triple unión ~28 % de eficiencia; ~20 W/kg a 1 UA a nivel de ala."
+    },
+    {
+      "id": "solar_l",
+      "name": "Ala solar grande",
+      "category": "power",
+      "description": "4 000 W a 1 UA. En Júpiter (≈5,2 UA) entrega sólo ~130 W: Juno necesitó tres alas enormes.",
+      "mass": 160,
+      "cost": 70,
+      "powerDraw": 0,
+      "solarW1AU": 4000,
+      "source": "Juno: 3 alas, ~14 kW a 1 UA y ~500 W en Júpiter (NASA/JPL)."
+    },
+    {
+      "id": "rtg",
+      "name": "RTG (GPHS-RTG)",
+      "category": "power",
+      "description": "Generador de radioisótopos: 290 W constantes sin importar la distancia al Sol ni los eclipses. Caro y escaso.",
+      "mass": 56,
+      "cost": 120,
+      "powerDraw": 0,
+      "rtgW": 290,
+      "source": "GPHS-RTG de Cassini y New Horizons: 56 kg, ~290 W eléctricos al inicio (NASA/DOE)."
+    },
+    {
+      "id": "battery",
+      "name": "Batería de ion-litio",
+      "category": "storage",
+      "description": "Guarda 800 Wh para sobrevivir los eclipses, cuando los paneles no ven el Sol.",
+      "mass": 20,
+      "cost": 8,
+      "powerDraw": 0,
+      "batteryWh": 800,
+      "source": "Baterías Li-ion espaciales ~50–100 Wh/kg a nivel de sistema."
+    },
+    {
+      "id": "lga",
+      "name": "Antena de baja ganancia",
+      "category": "comms",
+      "description": "Ligera y omnidireccional. Ideal como respaldo, pero envía muy pocos datos desde lejos.",
+      "mass": 5,
+      "cost": 6,
+      "powerDraw": 20,
+      "downlinkKbps1AU": 50,
+      "downlinkKbpsMax": 2000,
+      "source": "Antenas LGA en banda X: decenas de bps a pocos kbps en espacio profundo."
+    },
+    {
+      "id": "hga",
+      "name": "Antena de alta ganancia",
+      "category": "comms",
+      "description": "Plato de 2,5 m. Envía cientos de veces más datos, pero pesa y consume mucho.",
+      "mass": 60,
+      "cost": 45,
+      "powerDraw": 120,
+      "downlinkKbps1AU": 8000,
+      "downlinkKbpsMax": 100000,
+      "source": "MRO: plato de 3 m, 100 W de RF, hasta ~6 Mbps desde Marte (NASA/JPL)."
+    },
+    {
+      "id": "engine",
+      "name": "Motor bipropelente",
+      "category": "propulsion",
+      "description": "Aporta el Δv para frenar y entrar en órbita. Isp 320 s.",
+      "mass": 80,
+      "cost": 35,
+      "powerDraw": 40,
+      "isp": 320,
+      "source": "Motores de inserción orbital (p. ej. Leros 1b de Juno, Isp ~318 s)."
+    },
+    {
+      "id": "tank",
+      "name": "Tanque de propelente",
+      "category": "tank",
+      "description": "400 kg de combustible. Más tanques = más Δv, pero también más masa para el cohete.",
+      "mass": 40,
+      "cost": 18,
+      "powerDraw": 0,
+      "propellant": 400,
+      "source": "Fracción estructural típica de tanques ~8–10 %."
+    },
+    {
+      "id": "camera",
+      "name": "Cámara multiespectral",
+      "category": "instrument",
+      "instrument": "camera",
+      "description": "Imágenes de alta resolución. Mucha ciencia… y muchísimos datos que enviar.",
+      "mass": 45,
+      "cost": 80,
+      "powerDraw": 120,
+      "dataKbps": 800,
+      "science": 30,
+      "source": "HiRISE (MRO): 65 kg, ~60 W; OLI (Landsat): orden de cientos de Mbps en ráfaga."
+    },
+    {
+      "id": "spectrometer",
+      "name": "Espectrómetro infrarrojo",
+      "category": "instrument",
+      "instrument": "spectrometer",
+      "description": "Detecta minerales, hielo de agua y gases. Muy valioso en la Luna y Marte.",
+      "mass": 35,
+      "cost": 95,
+      "powerDraw": 80,
+      "dataKbps": 200,
+      "science": 35,
+      "source": "CRISM (MRO): 33 kg; consumo y tasa de datos redondeados para el juego."
+    },
+    {
+      "id": "magnetometer",
+      "name": "Magnetómetro",
+      "category": "instrument",
+      "instrument": "magnetometer",
+      "description": "Mide campos magnéticos con pocos datos y poca energía. La estrella en Júpiter.",
+      "mass": 15,
+      "cost": 30,
+      "powerDraw": 12,
+      "dataKbps": 8,
+      "science": 18,
+      "source": "MAG de Juno y MAVEN: pocos kg, < 10 W."
+    }
+  ]
+}

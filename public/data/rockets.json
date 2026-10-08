@@ -1,0 +1,65 @@
+{
+  "_comment": "3 cohetes. payload = carga útil máxima en kg por destino (0 = no llega). cost en M$. Cifras públicas redondeadas; las marcadas 'est.' son estimaciones del equipo.",
+  "rockets": [
+    {
+      "id": "falcon9",
+      "name": "Falcon 9",
+      "operator": "SpaceX",
+      "cost": 70,
+      "payload": {
+        "leo": 17500,
+        "tli": 2200,
+        "mars": 1600,
+        "jupiter": 0
+      },
+      "cruiseDays": {
+        "leo": 0,
+        "tli": 5,
+        "mars": 220,
+        "jupiter": 0
+      },
+      "description": "Barato y reutilizable. Perfecto para órbita terrestre; justo para la Luna y Marte; no llega a Júpiter.",
+      "source": "SpaceX: precio público 69,75 M$; 22,8 t a LEO y 4,0 t a Marte en modo desechable. Valores reutilizables y a TLI: est."
+    },
+    {
+      "id": "falconheavy",
+      "name": "Falcon Heavy",
+      "operator": "SpaceX",
+      "cost": 178,
+      "payload": {
+        "leo": 63800,
+        "tli": 15000,
+        "mars": 16800,
+        "jupiter": 6000
+      },
+      "cruiseDays": {
+        "leo": 0,
+        "tli": 5,
+        "mars": 200,
+        "jupiter": 2000
+      },
+      "description": "Tres núcleos de Falcon 9. Llega a todo el Sistema Solar interior y a Júpiter con asistencias gravitatorias (≈5,5 años).",
+      "source": "SpaceX: 63,8 t a LEO, 16,8 t a Marte. Contrato de lanzamiento de Europa Clipper: 178 M$ (NASA, 2021)."
+    },
+    {
+      "id": "sls",
+      "name": "SLS Block 1",
+      "operator": "NASA",
+      "cost": 2200,
+      "payload": {
+        "leo": 95000,
+        "tli": 27000,
+        "mars": 20000,
+        "jupiter": 9000
+      },
+      "cruiseDays": {
+        "leo": 0,
+        "tli": 4,
+        "mars": 180,
+        "jupiter": 900
+      },
+      "description": "El cohete más potente de la NASA. Envía la nave directo a Júpiter en ≈2,5 años… a un precio enorme.",
+      "source": "NASA: >27 t a TLI. Auditoría OIG (2022): ~2 200 M$ por cohete SLS. Europa Clipper se pasó de SLS a Falcon Heavy para ahorrar ~2 000 M$."
+    }
+  ]
+}
