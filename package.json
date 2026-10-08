@@ -1,0 +1,29 @@
+{
+  "name": "mision-orbita",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Juego de diseño de misiones espaciales — NASA Space Apps Challenge 2026",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "balance": "tsx tools/balance.ts",
+    "fallback": "tsx tools/generate-fallback.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "^5.3.0",
+    "@fontsource/tiny5": "^5.3.0",
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4"
+  }
+}

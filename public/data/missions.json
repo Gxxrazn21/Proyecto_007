@@ -1,0 +1,107 @@
+{
+  "_comment": "Misiones jugables. budget en M$ (nave + cohete). deltaVRequired en m/s. affinity multiplica la ciencia de cada instrumento en ese destino.",
+  "missions": [
+    {
+      "id": "earth",
+      "name": "Vigía Terrestre",
+      "objective": "Satélite de observación de la Tierra",
+      "briefing": "Pon en órbita heliosincrónica (705 km) un satélite que vigile bosques, cultivos y glaciares. Es la misión ideal para aprender.",
+      "inspiredBy": "Landsat 9 (NASA/USGS, 2021)",
+      "body": "earth",
+      "destination": "leo",
+      "budget": 700,
+      "deltaVRequired": 150,
+      "eclipseMinutes": 35,
+      "minScience": 45,
+      "affinity": {
+        "camera": 1.5,
+        "spectrometer": 1.1,
+        "magnetometer": 0.4
+      },
+      "scienceEvents": 4,
+      "difficulty": 1,
+      "eventTags": [
+        "near-earth",
+        "leo",
+        "eclipse",
+        "solar"
+      ]
+    },
+    {
+      "id": "moon",
+      "name": "Centinela Lunar",
+      "objective": "Orbitar la Luna",
+      "briefing": "Mapea los cráteres polares en busca de hielo de agua para futuras bases de Artemis. Hay que frenar para quedar en órbita lunar.",
+      "inspiredBy": "Lunar Reconnaissance Orbiter (NASA, 2009)",
+      "body": "moon",
+      "destination": "tli",
+      "budget": 850,
+      "deltaVRequired": 900,
+      "eclipseMinutes": 48,
+      "minScience": 60,
+      "affinity": {
+        "camera": 1.3,
+        "spectrometer": 1.5,
+        "magnetometer": 0.6
+      },
+      "scienceEvents": 4,
+      "difficulty": 1,
+      "eventTags": [
+        "near-earth",
+        "eclipse",
+        "solar"
+      ]
+    },
+    {
+      "id": "mars",
+      "name": "Explorador de Marte",
+      "objective": "Estudiar Marte desde órbita",
+      "briefing": "Estudia la atmósfera y los minerales de Marte. Viaje de ~7 meses, un frenado fuerte y comunicaciones a cientos de millones de km.",
+      "inspiredBy": "MAVEN (2013) y Mars Reconnaissance Orbiter (2005)",
+      "body": "mars",
+      "destination": "mars",
+      "budget": 1100,
+      "deltaVRequired": 1000,
+      "eclipseMinutes": 40,
+      "minScience": 70,
+      "affinity": {
+        "camera": 1.3,
+        "spectrometer": 1.4,
+        "magnetometer": 0.9
+      },
+      "scienceEvents": 5,
+      "difficulty": 2,
+      "eventTags": [
+        "deep-space",
+        "eclipse",
+        "solar",
+        "mars"
+      ]
+    },
+    {
+      "id": "jupiter",
+      "name": "Mensajero Joviano",
+      "objective": "Sonda a Júpiter",
+      "briefing": "Misión insignia: estudia el campo magnético de Júpiter. A 5 UA el Sol brilla 27 veces menos y la radiación es brutal.",
+      "inspiredBy": "Juno (2011) y Europa Clipper (2024)",
+      "body": "jupiter",
+      "destination": "jupiter",
+      "budget": 3500,
+      "deltaVRequired": 1300,
+      "eclipseMinutes": 0,
+      "minScience": 70,
+      "affinity": {
+        "camera": 0.9,
+        "spectrometer": 1.2,
+        "magnetometer": 2.2
+      },
+      "scienceEvents": 5,
+      "difficulty": 3,
+      "eventTags": [
+        "deep-space",
+        "solar",
+        "jupiter"
+      ]
+    }
+  ]
+}
