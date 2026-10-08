@@ -141,7 +141,7 @@ export class ResultsScene extends Phaser.Scene {
     const scrollBy = (dy: number) => this.list.setY(Phaser.Math.Clamp(this.list.y + dy, minY, maxY));
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => scrollBy(-dy * 0.5));
     const zone = this.add.zone(LIST_X, LIST_Y + 16, LIST_W, LIST_H - 20).setOrigin(0).setInteractive();
-    zone.on('pointermove', (p: Phaser.Input.Pointer) => p.isDown && scrollBy(p.y - p.prevPosition.y));
+    zone.on('pointermove', (p: Phaser.Input.Pointer) => p.isDown && scrollBy((p.y - p.prevPosition.y) / this.cameras.main.zoom));
     if (this.contentH > LIST_H - 22) {
       new Button(this, 346, 250, 30, 16, 'Subir', () => scrollBy(60), 'ghost');
       new Button(this, 380, 250, 30, 16, 'Bajar', () => scrollBy(-60), 'ghost');

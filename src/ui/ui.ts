@@ -29,6 +29,8 @@ export function text(scene: Phaser.Scene, x: number, y: number, str: string, o: 
     align: o.align ?? 'left',
     lineSpacing: o.lineSpacing ?? (font === 'ui' ? 2 : 0),
     wordWrap: o.wrap ? { width: o.wrap, useAdvancedWrap: true } : undefined,
+    // Se dibuja a la resolución física de la pantalla: texto nítido.
+    resolution: VIEW.zoom,
   });
   if (o.align === 'center') t.setOrigin(0.5, 0);
   if (o.align === 'right') t.setOrigin(1, 0);

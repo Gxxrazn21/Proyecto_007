@@ -11,7 +11,7 @@
  *   - vite.config.ts  → en desarrollo (npm run dev)
  *   - api/*.ts        → en producción (funciones serverless de Vercel)
  */
-import type { Apod, Asteroid, Body, EnvData, SolarEvent } from '../src/types';
+import type { Apod, Asteroid, Body, EnvData, SolarEvent } from '../src/types.js';
 
 const NASA = 'https://api.nasa.gov';
 const HORIZONS = 'https://ssd.jpl.nasa.gov/api/horizons.api';

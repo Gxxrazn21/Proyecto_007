@@ -2,7 +2,7 @@
  * Función serverless de Vercel: GET /api/neows
  * La clave se lee de la variable de entorno NASA_API_KEY (Vercel → Settings → Environment Variables).
  */
-import { handleApi } from '../server/nasa';
+import { handleApi } from '../server/nasa.js';
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);

@@ -8,6 +8,7 @@ import { C } from '../art/palette';
 import { GameState } from '../state/GameState';
 import { getApod, getFeeds } from '../services/nasa';
 import { text } from '../ui/ui';
+import { frameCamera } from '../ui/view';
 import type { EventDef, Mission, ModuleDef, Rocket } from '../types';
 
 export class BootScene extends Phaser.Scene {
@@ -16,6 +17,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
+    frameCamera(this);
     const bar = this.add.graphics();
     this.load.on('progress', (v: number) => {
       bar.clear().fillStyle(C.rivet).fillRect(190, 140, 100, 3).fillStyle(C.foilLt).fillRect(190, 140, 100 * v, 3);

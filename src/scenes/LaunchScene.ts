@@ -168,14 +168,22 @@ export class LaunchScene extends Phaser.Scene {
       for (const dx of [-side, side]) rocket.add(this.add.sprite(dx, 0, 'fx-flame').setOrigin(0.5, 0).play('flame').setVisible(false).setName('booster'));
     }
 
-    cam.scrollY = WORLD_H - 270;
+    cam.centerOn(240, WORLD_H - 135);
     const smoke = this.add.particles(240, groundY - 2, 'fx-smoke', {
       frame: [0, 1, 2], speedX: { min: -60, max: 60 }, speedY: { min: -12, max: 0 }, lifespan: 1600,
       alpha: { start: 0.9, end: 0 }, frequency: 30, emitting: false,
     });
 
-    const countdown = text(this, Math.round(W / 2), 0, '', { font: 'title', size: 32, color: 'foilLt', align: 'center' }).setScrollFactor(0).setY(60);
-    const caption = text(this, Math.round(W / 2), 240, '', { align: 'center', color: 'frost', wrap: 400 }).setScrollFactor(0);
+    // Textos fijos en pantalla: se recolocan cada cuadro según la vista de la cámara.
+    const countdown = text(this, 0, 0, '', { font: 'title', size: 32, color: 'foilLt', align: 'center' }).setDepth(30);
+    const caption = text(this, 0, 0, '', { align: 'center', color: 'frost', wrap: 400 }).setDepth(30);
+    const pin = () => {
+      const v = cam.worldView;
+      countdown.setPosition(Math.round(v.centerX), Math.round(v.y + 60));
+      caption.setPosition(Math.round(v.centerX), Math.round(v.y + 240));
+    };
+    pin();
+    this.events.on('postupdate', pin);
     const steps = ['T-3', 'T-2', 'T-1', '¡Despegue!'];
     steps.forEach((s, i) => this.time.delayedCall(i * 700, () => {
       countdown.setText(s);

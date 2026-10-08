@@ -1,8 +1,8 @@
 /**
- * Punto de entrada. Configura Phaser en pixel art y registra las escenas.
+ * Punto de entrada. Configura Phaser y registra las escenas.
  *
- * Responsive (ver ui/view.ts): altura base 270 px, ancho de 480 a 640 px
- * según la forma de la pantalla, y escala entera cuando no desperdicia espacio.
+ * Nitidez y responsive (ver ui/view.ts): el lienzo tiene la resolución física
+ * de la pantalla y cada escena amplía su cámara VIEW.zoom veces.
  */
 import Phaser from 'phaser';
 import '@fontsource/tiny5';
@@ -16,49 +16,49 @@ import { WorkshopScene } from './scenes/WorkshopScene';
 import { LaunchScene } from './scenes/LaunchScene';
 import { OperationsScene } from './scenes/OperationsScene';
 import { ResultsScene } from './scenes/ResultsScene';
-import { BASE_H, VIEW, cssZoom, idealWidth, setViewWidth } from './ui/view';
+import { VIEW, canvasSize, frameCamera, updateView } from './ui/view';
 
 const parent = document.getElementById('game')!;
-setViewWidth(idealWidth());
+updateView();
 
 function fitParent(): void {
-  const z = cssZoom(VIEW.width);
-  parent.style.width = `${Math.floor(VIEW.width * z)}px`;
-  parent.style.height = `${Math.floor(BASE_H * z)}px`;
+  parent.style.width = `${VIEW.cssW}px`;
+  parent.style.height = `${VIEW.cssH}px`;
 }
 fitParent();
 
+const [cw, ch] = canvasSize();
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent,
-  width: VIEW.width,
-  height: BASE_H,
+  width: cw,
+  height: ch,
   backgroundColor: '#0f1330',
   pixelArt: true,
   roundPixels: true,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  scale: { mode: Phaser.Scale.NONE, zoom: VIEW.cssW / cw },
   input: { activePointers: 2 },
   scene: [BootScene, MenuScene, BriefingScene, WorkshopScene, LaunchScene, OperationsScene, ResultsScene],
 });
 
 /** Al girar el teléfono o cambiar el tamaño de la ventana. */
 function onResize(): void {
-  const w = idealWidth();
-  if (w !== VIEW.width) {
-    setViewWidth(w);
-    game.scale.resize(w, BASE_H);
-    // Las escenas de menú se redibujan con el nuevo ancho. Las escenas con una
-    // partida en curso (lanzamiento, operación) no se reinician: sólo se centran.
-    for (const s of game.scene.getScenes(true)) {
-      if (['Launch', 'Operations'].includes(s.scene.key)) s.cameras.main.setScroll(VIEW.left, s.cameras.main.scrollY);
-      else if (s.scene.key !== 'Boot') s.scene.restart();
-    }
-  }
+  if (!updateView()) return;
   fitParent();
-  game.scale.refresh();
+  const [w, h] = canvasSize();
+  game.scale.resize(w, h);
+  game.scale.setZoom(VIEW.cssW / w);
+  for (const s of game.scene.getScenes(true)) {
+    // Una partida en curso no se reinicia: sólo se reencuadra la cámara.
+    if (['Launch', 'Operations'].includes(s.scene.key)) frameCamera(s, s.cameras.main.midPoint.y);
+    else if (s.scene.key !== 'Boot') s.scene.restart();
+  }
 }
-window.addEventListener('resize', onResize);
-window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+let resizeTimer = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(onResize, 120);
+});
 
 // Acceso para depurar desde la consola del navegador: window.game
 (window as unknown as { game: Phaser.Game }).game = game;
