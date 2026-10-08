@@ -18,6 +18,7 @@ import { offlineEnv } from '../systems/ephemeris';
 import { SLOTS } from '../systems/slots';
 import { Button, Gauge, drawPanel, fadeIn, goTo, header, shade, text } from '../ui/ui';
 import { VIEW } from '../ui/view';
+import { sfx } from '../systems/sfx';
 import type { ModuleCategory, ModuleDef, SlotDef } from '../types';
 
 /** Centro del bus dentro de la sala limpia. */
@@ -331,6 +332,7 @@ export class WorkshopScene extends Phaser.Scene {
     }
     d[slot.id] = mod.id;
     this.sparkle(CX + slot.x, CY + slot.y);
+    sfx.play('place');
     this.selectedSlot = null;
     this.armed = null; // cada toque en el catálogo toma UNA pieza
     this.cameras.main.shake(60, 0.002);
@@ -347,6 +349,7 @@ export class WorkshopScene extends Phaser.Scene {
 
   private removeFrom(slotId: string, moving = false): void {
     const d = GameState.design;
+    if (!moving) sfx.play('remove');
     if (slotId === 'core' && !moving) {
       for (const k of Object.keys(d)) delete d[k];
       this.toast('Sin bus no hay nave: se desmontaron todos los módulos');
@@ -421,7 +424,7 @@ export class WorkshopScene extends Phaser.Scene {
       [{ value: m.deltaVRequired, label: 'mínimo', color: 'frost' }]);
 
     const sMax = Math.max(s.science, m.minScience) * 1.3;
-    this.gauges.science.set(s.science, sMax, `${Math.round(s.science)} pts`,
+    this.gauges.science.set(s.science, sMax, `${Math.floor(s.science)} pts`,
       s.science >= m.minScience ? 'ok' : 'alert', [{ value: m.minScience, label: 'meta', color: 'frost' }]);
 
     const bad = s.checks.filter((c) => !c.ok).length;
@@ -479,6 +482,7 @@ export class WorkshopScene extends Phaser.Scene {
   }
 
   private toast(msg: string): void {
+    sfx.play('error');
     this.toastText?.destroy();
     const t = text(this, 0, 0, msg, { align: 'center', color: 'space', wrap: 220 });
     const w = Math.min(232, t.width + 12);

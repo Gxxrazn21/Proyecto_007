@@ -8,6 +8,7 @@
 import type { Apod, Design, EnvData, EventDef, Mission, ModuleDef, ReportEntry, Rocket } from '../types';
 import type { Feeds, OpsState } from '../systems/events';
 import { newOpsState } from '../systems/events';
+import type { Badge } from '../systems/badges';
 
 export interface Database {
   missions: Mission[];
@@ -33,6 +34,8 @@ class GameStateStore {
   /** Resultado final calculado en Operations. */
   outcome: 'success' | 'partial' | 'lost' | 'launch-fail' | null = null;
   finalScience = 0;
+  /** Resultado del registro de insignias de la última partida (se registra una sola vez). */
+  lastRecord: { unlocked: Badge[]; newBest: boolean; shown: boolean } | null = null;
 
   /** Empieza una misión nueva (conserva el diseño si es la misma misión). */
   startMission(m: Mission): void {
@@ -48,6 +51,7 @@ class GameStateStore {
     this.report = [];
     this.outcome = null;
     this.finalScience = 0;
+    this.lastRecord = null;
   }
 }
 

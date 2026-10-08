@@ -141,6 +141,15 @@ export interface Asteroid {
   source: 'neows' | 'offline';
 }
 
+/** Evento natural en la Tierra (NASA EONET): incendios, volcanes, tormentas… */
+export interface EarthEvent {
+  title: string;
+  /** Categoría de EONET: wildfires, volcanoes, severeStorms, floods, seaLakeIce… */
+  category: string;
+  date: string;
+  source: 'eonet' | 'offline';
+}
+
 export interface Apod {
   title: string;
   url: string;
@@ -188,7 +197,7 @@ export interface EventDef {
   /** La misión debe tener alguna de estas etiquetas. */
   tags: string[];
   /** De dónde viene el dato real que lo dispara. */
-  feed?: 'donki-flare' | 'donki-cme' | 'donki-storm' | 'neows';
+  feed?: 'donki-flare' | 'donki-cme' | 'donki-storm' | 'neows' | 'eonet';
   /** Condición para que el evento pueda aparecer. */
   requires?: string;
   weight: number;

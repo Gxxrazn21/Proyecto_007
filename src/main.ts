@@ -8,6 +8,7 @@ import Phaser from 'phaser';
 import '@fontsource/tiny5';
 import '@fontsource/pixelify-sans/400.css';
 import '@fontsource/pixelify-sans/700.css';
+import './ui/fonts.css';
 
 import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';

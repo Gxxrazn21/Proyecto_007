@@ -47,7 +47,7 @@ export class BootScene extends Phaser.Scene {
 
     // Las fuentes web deben estar listas antes de dibujar texto en el canvas.
     await Promise.all([
-      document.fonts.load('8px "Tiny5"', 'Aá Δ'),
+      document.fonts.load('8px "Orbita UI"', 'Aá Δ 0123456789'),
       document.fonts.load('16px "Pixelify Sans"'),
       document.fonts.load('bold 16px "Pixelify Sans"'),
     ]).catch(() => undefined);

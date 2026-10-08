@@ -11,6 +11,7 @@ import { GameState } from '../state/GameState';
 import { computeStats, type DesignStats } from '../systems/calc';
 import { applyEffects, cruiseEventCount, impactOf, pickEvents, resolveChoice, type Feeds, type LiveEvent } from '../systems/events';
 import { buildCraft } from '../ui/craft';
+import { sfx } from '../systems/sfx';
 import { Button, Gauge, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
 
 /** Segundos para decidir en cada evento. */
@@ -37,6 +38,9 @@ export class OperationsScene extends Phaser.Scene {
   private phaseText!: Phaser.GameObjects.Text;
   private timeline!: Phaser.GameObjects.Graphics;
   private cruiseCount = 0;
+  /** Vista orbital: miniatura que gira alrededor del planeta tras la inserción. */
+  private mini?: Phaser.GameObjects.Image;
+  private orbitAngle = 0;
 
   constructor() {
     super('Operations');
@@ -49,13 +53,14 @@ export class OperationsScene extends Phaser.Scene {
     header(this, 3, `Operación · ${m.name}`);
 
     // Destino a la derecha, nave a la izquierda.
-    this.add.image(300, 120, `pl-${m.body}`).setAlpha(0.95);
+    this.add.image(300, 120, `pl-${m.body}`).setDepth(1);
+    this.mini = undefined;
     this.craft = buildCraft(this, 150, 130, GameState.design);
     this.tweens.add({ targets: this.craft, y: 124, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     this.buildHud();
 
-    const feeds: Feeds = (await GameState.feeds) ?? { flares: [], cmes: [], storms: [], asteroids: [] };
+    const feeds: Feeds = (await GameState.feeds) ?? { flares: [], cmes: [], storms: [], asteroids: [], earth: [] };
     if (!this.scene.isActive()) return;
     const cruiseDays = GameState.rocket?.cruiseDays[m.destination] ?? 0;
     this.cruiseCount = cruiseEventCount(cruiseDays);
@@ -73,6 +78,15 @@ export class OperationsScene extends Phaser.Scene {
     ];
     this.updateHud();
     this.time.delayedCall(900, () => this.next());
+  }
+
+  update(_t: number, dt: number): void {
+    if (!this.mini) return;
+    // Órbita elíptica vista de canto: por detrás del planeta en la mitad superior.
+    this.orbitAngle += (dt / 1000) * 0.8;
+    const s = Math.sin(this.orbitAngle);
+    this.mini.setPosition(Math.round(300 + 46 * Math.cos(this.orbitAngle)), Math.round(120 + 12 * s));
+    this.mini.setDepth(s > 0 ? 2 : 0);
   }
 
   private stats(): DesignStats {
@@ -105,7 +119,7 @@ export class OperationsScene extends Phaser.Scene {
     const m = GameState.mission!;
     this.health.set(ops.health, 100, `${ops.health}`, ops.health > 60 ? 'ok' : ops.health > 30 ? 'foilLt' : 'alert');
     const sci = s.science * ops.scienceMult;
-    this.science.set(sci, Math.max(sci, m.minScience) * 1.3, `${Math.round(sci)} pts`, sci >= m.minScience ? 'ok' : 'alert', [{ value: m.minScience, label: 'meta', color: 'frost' }]);
+    this.science.set(sci, Math.max(sci, m.minScience) * 1.3, `${Math.floor(sci)} pts`, sci >= m.minScience ? 'ok' : 'alert', [{ value: m.minScience, label: 'meta', color: 'frost' }]);
     const dvLeft = s.deltaV - ops.deltaVSpent;
     const need = ops.inserted ? 0 : m.deltaVRequired;
     this.dvGauge.set(Math.max(0, dvLeft), Math.max(dvLeft, m.deltaVRequired) * 1.2, `${Math.max(0, Math.round(dvLeft))} m/s`,
@@ -162,6 +176,8 @@ export class OperationsScene extends Phaser.Scene {
   private showEvent(ev: LiveEvent): void {
     const c = this.add.container(0, 0).setDepth(20);
     this.card = c;
+    sfx.play('alert');
+    let lastSecond = DECISION_SECONDS;
     const x = 40, w = 300;
     const g = this.add.graphics();
     c.add(g);
@@ -197,6 +213,12 @@ export class OperationsScene extends Phaser.Scene {
       delay: 50, repeat: (DECISION_SECONDS * 1000) / 50,
       callback: () => {
         drawBar();
+        // Tic en los últimos 3 segundos.
+        const secLeft = Math.ceil(DECISION_SECONDS - (this.time.now - started) / 1000);
+        if (secLeft < lastSecond) {
+          lastSecond = secLeft;
+          if (secLeft <= 3 && secLeft > 0) sfx.play('tick');
+        }
         if (this.time.now - started >= DECISION_SECONDS * 1000) this.decide(ev, ev.def.timeoutChoice, true);
       },
     });
@@ -218,6 +240,7 @@ export class OperationsScene extends Phaser.Scene {
     const outcome = resolveChoice(ev, index, this.stats(), GameState.ops);
     applyEffects(GameState.ops, outcome.effects);
     const impact = impactOf(outcome.effects);
+    sfx.play(impact === 'bad' ? 'bad' : 'good');
     GameState.report.push({
       phase: this.stepIndex > this.cruiseCount ? 'science' : 'cruise',
       title: ev.title,
@@ -272,7 +295,10 @@ export class OperationsScene extends Phaser.Scene {
       if (ok) {
         ops.inserted = true;
         ops.deltaVSpent += m.deltaVRequired;
+        sfx.play('good');
+        this.enterOrbit();
       } else {
+        sfx.play('bad');
         ops.scienceMult *= m.body === 'earth' ? 0.5 : 0.15;
         ops.deltaVSpent = s.deltaV;
       }
@@ -296,6 +322,18 @@ export class OperationsScene extends Phaser.Scene {
     });
   }
 
+  /** La nave grande se acerca al planeta y pasa a la vista orbital. */
+  private enterOrbit(): void {
+    this.tweens.killTweensOf(this.craft);
+    this.tweens.add({
+      targets: this.craft, x: 300, y: 120, scale: 0.2, alpha: 0, duration: 900, ease: 'Quad.in',
+      onComplete: () => {
+        this.orbitAngle = Math.PI;
+        this.mini = this.add.image(254, 120, 'craft-mini');
+      },
+    });
+  }
+
   /* ------------------------------------------------------------------ */
   /* Fin                                                                  */
   /* ------------------------------------------------------------------ */
@@ -308,8 +346,10 @@ export class OperationsScene extends Phaser.Scene {
     GameState.finalScience = lost ? s.science * ops.scienceMult * 0.3 : s.science * ops.scienceMult;
     GameState.outcome = lost ? 'lost' : ops.inserted && GameState.finalScience >= m.minScience ? 'success' : 'partial';
 
+    sfx.play(lost ? 'fail' : 'success');
     if (lost) {
       this.tweens.add({ targets: this.craft, angle: 200, alpha: 0, duration: 2000 });
+      if (this.mini) this.tweens.add({ targets: this.mini, alpha: 0, duration: 1500 });
       text(this, 180, 200, 'Se perdió el contacto con la nave', { align: 'center', color: 'alert' });
     } else {
       text(this, 180, 200, 'Misión completada: los datos están en casa', { align: 'center', color: 'ok' });

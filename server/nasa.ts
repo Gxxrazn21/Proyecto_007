@@ -11,7 +11,7 @@
  *   - vite.config.ts  → en desarrollo (npm run dev)
  *   - api/*.ts        → en producción (funciones serverless de Vercel)
  */
-import type { Apod, Asteroid, Body, EnvData, SolarEvent } from '../src/types.js';
+import type { Apod, Asteroid, Body, EarthEvent, EnvData, SolarEvent } from '../src/types.js';
 
 const NASA = 'https://api.nasa.gov';
 const HORIZONS = 'https://ssd.jpl.nasa.gov/api/horizons.api';
@@ -32,6 +32,8 @@ export async function handleApi(route: string, params: URLSearchParams, apiKey =
         return ok(await apod(apiKey));
       case 'neows':
         return ok(await neows(apiKey));
+      case 'eonet':
+        return ok(await eonet());
       case 'horizons': {
         const body = params.get('body') as Body | null;
         if (!body || !['earth', 'moon', 'mars', 'jupiter'].includes(body)) {
@@ -158,6 +160,32 @@ export async function neows(key: string): Promise<Asteroid[]> {
     }))
     .sort((a, b) => a.missLunar - b.missLunar)
     .slice(0, 10);
+}
+
+/* ------------------------------------------------------------------ */
+/* EONET: eventos naturales en la Tierra en curso (no necesita clave)   */
+/* https://eonet.gsfc.nasa.gov/docs/v3                                  */
+/* ------------------------------------------------------------------ */
+
+interface EonetRaw {
+  title: string;
+  categories: { id: string }[];
+  geometry: { date: string }[];
+}
+
+const EONET_CATEGORIES = new Set(['wildfires', 'volcanoes', 'severeStorms', 'floods', 'seaLakeIce']);
+
+export async function eonet(): Promise<EarthEvent[]> {
+  const data = await getJson<{ events: EonetRaw[] }>('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=60&limit=60');
+  return (data.events ?? [])
+    .filter((e) => EONET_CATEGORIES.has(e.categories[0]?.id))
+    .map<EarthEvent>((e) => ({
+      title: e.title,
+      category: e.categories[0].id,
+      date: e.geometry[e.geometry.length - 1]?.date ?? '',
+      source: 'eonet',
+    }))
+    .slice(0, 15);
 }
 
 /* ------------------------------------------------------------------ */

@@ -11,6 +11,8 @@ import { GameState } from '../state/GameState';
 import { computeStats, fmtKbps, fmtMoney, type DesignStats } from '../systems/calc';
 import { Button, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
 import type { Mission, ReportEntry } from '../types';
+import { recordGame } from '../systems/badges';
+import { sfx } from '../systems/sfx';
 
 const LIST_X = 186;
 const LIST_Y = 24;
@@ -35,8 +37,21 @@ export class ResultsScene extends Phaser.Scene {
       rocket: GameState.rocket ?? undefined,
       solarFactor: GameState.ops.solarFactor,
     });
-    this.verdict(m, s);
+    const stars = this.verdict(m, s);
     this.report([...designAnalysis(m, s), ...GameState.report]);
+
+    // Registrar la partida una sola vez (aunque la escena se redibuje al girar el teléfono).
+    if (!GameState.lastRecord) {
+      const r = recordGame({
+        mission: m, outcome: GameState.outcome ?? 'partial', stars, stats: s, health: GameState.ops.health,
+        totalCost: s.craftCost + (GameState.rocket?.cost ?? 0), science: GameState.finalScience,
+      });
+      GameState.lastRecord = { ...r, shown: false };
+    }
+    if (!GameState.lastRecord.shown) {
+      GameState.lastRecord.shown = true;
+      this.time.delayedCall(500, () => this.celebrate());
+    }
 
     new Button(this, 8, 250, 98, 16, 'Ajustar el diseño', () => goTo(this, 'Workshop'), 'primary');
     new Button(this, 112, 250, 66, 16, 'Otra misión', () => goTo(this, 'Briefing'));
@@ -47,7 +62,7 @@ export class ResultsScene extends Phaser.Scene {
   /* Veredicto (izquierda)                                                */
   /* ------------------------------------------------------------------ */
 
-  private verdict(m: Mission, s: DesignStats): void {
+  private verdict(m: Mission, s: DesignStats): number {
     const g = this.add.graphics();
     drawPanel(g, 8, 24, 170, 216, 'hull', 'rivet');
 
@@ -74,7 +89,7 @@ export class ResultsScene extends Phaser.Scene {
     }
 
     const rows: [string, string, string, PalKey][] = [
-      ['science', 'Ciencia', `${Math.round(sci)} / ${m.minScience}`, sci >= m.minScience ? 'ok' : 'alert'],
+      ['science', 'Ciencia', `${Math.floor(sci)} / ${m.minScience}`, sci >= m.minScience ? 'ok' : 'alert'],
       ['money', 'Costo total', `${fmtMoney(total)}`, total <= m.budget ? 'frost' : 'alert'],
       ['money', 'Presupuesto', fmtMoney(m.budget), 'steel'],
       ['health', 'Salud final', `${GameState.ops.health}`, GameState.ops.health > 50 ? 'ok' : 'alert'],
@@ -95,6 +110,30 @@ export class ResultsScene extends Phaser.Scene {
     };
     text(this, 18, starsY + 96, tips[outcome], { wrap: 152, color: 'frost', lineSpacing: 3 });
     text(this, 18, 214, `Inspirada en ${m.inspiredBy}`, { wrap: 152, color: 'steel' });
+    if (GameState.lastRecord?.newBest) text(this, 168, 32, 'Récord', { align: 'right', color: 'signal' });
+    return stars;
+  }
+
+  /** Muestra las insignias desbloqueadas en esta partida. */
+  private celebrate(): void {
+    const rec = GameState.lastRecord!;
+    sfx.play(GameState.outcome === 'success' ? 'success' : 'fail');
+    if (rec.newBest) this.time.delayedCall(10, () => text(this, 168, 32, 'Récord', { align: 'right', color: 'signal' }));
+    rec.unlocked.forEach((b, i) => {
+      this.time.delayedCall(700 + i * 1600, () => {
+        sfx.play('badge');
+        const c = this.add.container(240, 250).setDepth(50).setAlpha(0);
+        const t1 = text(this, 0, -6, 'Nueva insignia', { align: 'center', color: 'space' });
+        const t2 = text(this, 0, 4, b.name, { align: 'center', font: 'title', size: 16, color: 'space' });
+        const w = Math.max(t1.width, t2.width) + 24;
+        const g = this.add.graphics();
+        drawPanel(g, -w / 2, -10, w, 34, 'foilLt', 'foilDk');
+        g.fillStyle(0xfff2b3).fillRect(-w / 2 + 3, -9, w - 6, 1);
+        c.add([g, t1, t2]);
+        this.tweens.add({ targets: c, alpha: 1, y: 222, duration: 300, ease: 'Back.out' });
+        this.tweens.add({ targets: c, alpha: 0, delay: 1300, duration: 250, onComplete: () => c.destroy() });
+      });
+    });
   }
 
   /* ------------------------------------------------------------------ */

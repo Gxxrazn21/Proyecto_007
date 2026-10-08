@@ -9,6 +9,7 @@ import { computeStats, fmtMass, fmtMoney, type DesignStats } from '../systems/ca
 import { buildCraft } from '../ui/craft';
 import { Button, drawPanel, fadeIn, goTo, header, starfield, text } from '../ui/ui';
 import { VIEW } from '../ui/view';
+import { sfx } from '../systems/sfx';
 import type { Destination, Rocket } from '../types';
 
 const DEST_NAME: Record<Destination, string> = {
@@ -191,6 +192,7 @@ export class LaunchScene extends Phaser.Scene {
         flame.setVisible(true);
         rocket.each((o: Phaser.GameObjects.GameObject) => o.name === 'booster' && (o as Phaser.GameObjects.Sprite).setVisible(true));
         smoke.start();
+        sfx.play('ignition');
         cam.shake(1200, 0.006);
       }
     }));
@@ -217,6 +219,7 @@ export class LaunchScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.stopFollow();
     cam.shake(600, 0.02);
+    sfx.play('boom');
     cam.flash(150, 255, 242, 179);
     for (let i = 0; i < 4; i++) {
       this.time.delayedCall(i * 160, () => this.add.sprite(x + Phaser.Math.Between(-16, 16), y - 40 + Phaser.Math.Between(-20, 20), 'fx-boom').play('boom'));
@@ -241,6 +244,7 @@ export class LaunchScene extends Phaser.Scene {
     const top = cam.worldView.y;
     const craft = buildCraft(this, x, top + 110, GameState.design).setAlpha(0);
     this.tweens.add({ targets: craft, alpha: 1, y: top + 92, duration: 1800, ease: 'Sine.out' });
+    sfx.play('good');
     this.time.delayedCall(1900, () => this.endCard('Separación exitosa', 'La nave está en camino. Empieza la fase de operación.', 'ok', 'Iniciar operación', 'Operations'));
   }
 

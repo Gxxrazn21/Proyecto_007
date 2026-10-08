@@ -57,6 +57,13 @@ function solarPanel(p: Pix, cols: number, rows: number): void {
 }
 
 function modules(s: Phaser.Scene): void {
+  // Nave en miniatura para la vista orbital: alas azules + cuerpo dorado.
+  makeTexture(s, 'craft-mini', 11, 5, (p) => {
+    p.rect(0, 1, 3, 3, 'cell'); p.rect(8, 1, 3, 3, 'cell');
+    p.rect(3, 2, 1, 1, 'steel'); p.rect(7, 2, 1, 1, 'steel');
+    p.rect(4, 1, 3, 3, 'foil'); p.px(4, 1, 'foilHi'); p.px(5, 0, 'frost');
+  });
+
   makeTexture(s, 'mod-bus', 28, 28, (p) => {
     foil(p, 0, 3, 28, 25);
     p.rect(2, 0, 24, 4, 'steel'); // cubierta superior de instrumentos

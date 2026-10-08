@@ -192,7 +192,7 @@ export function computeStats(
     },
     {
       id: 'instrument', ok: instruments.length > 0, label: 'Ciencia',
-      detail: instruments.length > 0 ? `${Math.round(science)} / ${mission.minScience} pts` : 'Sin instrumentos no hay ciencia',
+      detail: instruments.length > 0 ? `${Math.floor(science)} / ${mission.minScience} pts` : 'Sin instrumentos no hay ciencia',
     },
     {
       id: 'launch', ok: rocketFits.some((f) => f.fitsMass && f.affordable), label: 'Lanzamiento',

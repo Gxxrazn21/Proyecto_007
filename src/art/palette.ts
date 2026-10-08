@@ -43,5 +43,5 @@ export const C = Object.fromEntries(
 /** Fuentes (empaquetadas con @fontsource, funcionan offline). */
 export const FONT = {
   title: '"Pixelify Sans"',
-  ui: '"Tiny5"',
+  ui: '"Orbita UI", "Tiny5"',
 } as const;

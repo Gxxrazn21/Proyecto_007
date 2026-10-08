@@ -5,6 +5,14 @@ Juego educativo en pixel art para el **NASA Space Apps Challenge 2026**, reto *S
 
 > Elige un destino → arma la nave módulo a módulo → escoge el cohete → sobrevive a llamaradas solares reales → descubre qué decisión causó cada resultado.
 
+**Juega aquí:** https://mision-orbita.vercel.app (PC y móvil en horizontal)
+
+**Qué tiene:**
+- 4 misiones, 12 módulos y 3 cohetes reales, con fórmulas de ingeniería de verdad.
+- Datos de 4 APIs de la NASA y JPL: DONKI, NeoWs, EONET, APOD y Horizons.
+- Sonido chiptune sintetizado, 8 insignias y récords por misión.
+- Pixel art nítido en cualquier pantalla y modo offline.
+
 ## Inicio rápido
 ```bash
 git clone <url-del-repo> && cd Proyecto_007
@@ -24,7 +32,7 @@ Requisitos: **Node.js 20+** (probado con 22 y 24). Para probar en el celular, ab
 | `npm run balance` | Verifica que los diseños de referencia pasen o fallen como se espera |
 
 ## Datos de la NASA y la clave secreta
-El navegador **nunca** ve la clave. Llama a `/api/donki`, `/api/apod`, `/api/neows` y `/api/horizons`, y esas rutas, que se ejecutan en el servidor, añaden `NASA_API_KEY`:
+El navegador **nunca** ve la clave. Llama a `/api/donki`, `/api/apod`, `/api/neows`, `/api/eonet` y `/api/horizons`, y esas rutas, que se ejecutan en el servidor, añaden `NASA_API_KEY`:
 
 ```
 Navegador ──/api/*──► server/nasa.ts (Vite en dev · funciones de Vercel en producción) ──► api.nasa.gov / JPL Horizons
@@ -73,4 +81,4 @@ docs/                 ← GDD, plan de 48 h y fuentes de datos
 - [Fuentes de datos](docs/DATOS.md)
 
 ## Créditos
-Datos: NASA DONKI, NeoWs, APOD y JPL Horizons. Fuentes tipográficas: Pixelify Sans y Tiny5 (SIL OFL). Motor: Phaser 3.
+Datos: NASA DONKI, NeoWs, EONET, APOD y JPL Horizons. Fuentes tipográficas: Pixelify Sans, Tiny5 y Silkscreen (SIL OFL). Motor: Phaser 3.

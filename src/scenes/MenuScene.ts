@@ -8,6 +8,9 @@ import { GameState } from '../state/GameState';
 import { buildCraft } from '../ui/craft';
 import { Button, drawPanel, fadeIn, goTo, panel, prefersReducedMotion, shade, starfield, text } from '../ui/ui';
 import { VIEW } from '../ui/view';
+import { BADGES, loadProgress } from '../systems/badges';
+import { sfx } from '../systems/sfx';
+import { formatDate } from '../systems/events';
 
 const DEMO_CRAFT = { core: 'bus', pwr1: 'solar_s', pwr2: 'solar_s', ant1: 'hga', eng: 'engine', ins1: 'camera', ins2: 'magnetometer' };
 
@@ -46,16 +49,21 @@ export class MenuScene extends Phaser.Scene {
 
     text(this, 24, 258, 'NASA Space Apps Challenge 2026', { color: 'rivet' });
     this.fullscreenButton();
+    this.progressButtons();
     this.shootingStars();
   }
 
   /** Línea que dice si estamos usando datos en vivo o el respaldo offline. */
   private dataStatus(): void {
-    const t = text(this, 24, 192, 'Conectando con la NASA…', { color: 'steel' });
-    const dot = this.add.rectangle(18, 196, 3, 3, C.steel);
+    const t = text(this, 24, 210, 'Conectando con la NASA…', { color: 'steel', wrap: 300 });
+    const dot = this.add.rectangle(18, 214, 3, 3, C.steel);
     GameState.feeds?.then((f) => {
       const live = f.flares[0]?.source === 'donki';
-      t.setText(live ? 'Datos de la NASA en vivo' : 'Sin conexión: usando datos históricos reales');
+      // Clima espacial de hoy: la llamarada más reciente que registró DONKI.
+      const latest = [...f.flares].sort((a, b) => b.date.localeCompare(a.date))[0];
+      t.setText(live
+        ? `NASA en vivo · última llamarada fuerte: ${latest?.label ?? '—'} (${latest ? formatDate(latest.date) : 'sin datos'})`
+        : 'Sin conexión: usando datos históricos reales');
       t.setColor(live ? '#7fd46b' : '#efc65c');
       dot.setFillStyle(live ? C.ok : C.foilLt);
     });
@@ -65,10 +73,11 @@ export class MenuScene extends Phaser.Scene {
   private apodCard(): void {
     GameState.apod?.then((a) => {
       if (!a.url) return;
-      panel(this, 18, 208, 196, 44, 'hull', 'rivet');
-      text(this, 26, 214, 'Imagen astronómica del día · APOD', { color: 'steel' });
-      text(this, 26, 225, a.title, { wrap: 140 });
-      new Button(this, 172, 228, 34, 14, 'Ver', () => window.open(a.url, '_blank', 'noopener'));
+      const x = VIEW.right - 212;
+      panel(this, x, 22, 204, 44, 'hull', 'rivet');
+      text(this, x + 8, 28, 'Imagen astronómica del día · APOD', { color: 'steel' });
+      text(this, x + 8, 39, a.title, { wrap: 148 });
+      new Button(this, x + 162, 42, 34, 14, 'Ver', () => window.open(a.url, '_blank', 'noopener'));
     });
   }
 
@@ -105,7 +114,7 @@ export class MenuScene extends Phaser.Scene {
       'Datos y créditos',
       [
         'Clima espacial: NASA DONKI (llamaradas, CME, tormentas geomagnéticas).',
-        'Asteroides: NASA NeoWs. Imagen del día: NASA APOD.',
+        'Asteroides: NASA NeoWs. Imagen del día: NASA APOD. Eventos naturales en la Tierra: NASA EONET.',
         'Distancias planetarias: JPL Horizons; sin conexión, elementos keplerianos aproximados de JPL (E. M. Standish).',
         'Masas, potencias y cohetes: cifras públicas de NASA, JPL y SpaceX, redondeadas para el juego (ver docs/DATOS.md).',
         '',
@@ -115,10 +124,29 @@ export class MenuScene extends Phaser.Scene {
     );
   }
 
+  /** Insignias conseguidas y botón de sonido. */
+  private progressButtons(): void {
+    const p = loadProgress();
+    new Button(this, 24, 170, 74, 14, `Insignias ${p.badges.length}/${BADGES.length}`, () => this.showBadges());
+    const snd = new Button(this, 102, 170, 42, 14, sfx.muted ? 'Sonido: no' : 'Sonido: sí', () => {
+      const muted = sfx.toggle();
+      snd.setText(muted ? 'Sonido: no' : 'Sonido: sí');
+    }, 'ghost');
+  }
+
+  private showBadges(): void {
+    const p = loadProgress();
+    const lines = BADGES.map((b) => `${p.badges.includes(b.id) ? '[x]' : '[ ]'} ${b.name}: ${b.hint}`);
+    const best = GameState.db.missions
+      .map((m) => (p.best[m.id] ? `${m.name}: ${p.best[m.id].science} pts de ciencia, ${p.best[m.id].stars} estrella(s)` : null))
+      .filter(Boolean);
+    this.openModal('Insignias', [...lines, '', best.length ? 'Tus récords:' : 'Aún no tienes récords: ¡completa una misión!', ...best].join('\n'));
+  }
+
   /** Pantalla completa (Android y PC): más espacio = texto más grande. */
   private fullscreenButton(): void {
     if (!this.sys.game.device.fullscreen.available) return;
-    const b = new Button(this, 24, 170, 120, 14, this.scale.isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa', () => {
+    const b = new Button(this, 24, 188, 120, 14, this.scale.isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa', () => {
       if (this.scale.isFullscreen) {
         this.scale.stopFullscreen();
       } else {

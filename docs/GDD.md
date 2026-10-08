@@ -40,9 +40,14 @@ Número de eventos: crucero = 0 / 1 / 2 / 4 según la duración del viaje (de 0 
 ## 6. Balance (verificable con `npm run balance`)
 Diseños de referencia que deben pasar o fallar: Tierra equilibrada ✓ y sin batería ✗; Luna sin tanque ✗; Marte ligero con Falcon 9 ✓ y solo con antena de baja ganancia ✗ (llega el 2 % de los datos); Júpiter con 2 RTG estilo Cassini ✓, con 4 alas solares estilo Juno ✓ y con cámara ✗ (cuello de botella de datos). En Júpiter, el SLS cuesta 2 200 M$ y acorta el viaje de 5,5 a 2,5 años, que es la misma decisión que tomó Europa Clipper al revés.
 
-## 7. Dirección de arte
-Pixel art a 480×270, escalado entero sin suavizado y una **paleta de 20 colores** (`src/art/palette.ts`). La firma visual es el **oro de la manta térmica (MLI)**, reservado para la nave y la acción principal. Fuentes: Pixelify Sans para títulos y Tiny5 para la interfaz. El arte del MVP se genera por código (`src/art/sprites.ts`); cada PNG final reemplaza al placeholder usando la misma clave.
+## 7. Rejugabilidad
+- **8 insignias** (p. ej. *Ingeniería Cassini*: llegar a Júpiter solo con RTG; *Al estilo Juno*: solo con paneles; *Presupuesto de hierro*: triunfar con ≤ 60 % del presupuesto) y **récord de ciencia** por misión. Se guardan en el navegador del jugador.
+- Los eventos cambian en cada partida y usan datos en vivo, así que dos partidas nunca son iguales.
+- Sonido chiptune sintetizado con Web Audio, con botón para silenciarlo.
 
-## 8. Alcance
-**MVP (hecho):** 4 misiones, 12 módulos, 3 cohetes, 13 eventos, 7 escenas, datos de la NASA con respaldo offline, móvil.
+## 8. Dirección de arte
+Pixel art a 480×270, escalado entero sin suavizado y una **paleta de 20 colores** (`src/art/palette.ts`). La firma visual es el **oro de la manta térmica (MLI)**, reservado para la nave y la acción principal. Fuentes: Pixelify Sans para títulos y "Orbita UI" para la interfaz (letras de Tiny5 + dígitos de Silkscreen, porque en Tiny5 el 9 se confunde con el 3). El lienzo se dibuja a la resolución física de la pantalla para que todo se vea nítido. El arte del MVP se genera por código (`src/art/sprites.ts`); cada PNG final reemplaza al placeholder usando la misma clave.
+
+## 9. Alcance
+**MVP (hecho):** 4 misiones, 12 módulos, 3 cohetes, 14 eventos, 7 escenas, 5 fuentes de datos NASA/JPL con respaldo offline, móvil, sonido, insignias.
 **Después del MVP:** arte final, sonido (chiptune + efectos), ventanas de lanzamiento según la fecha, PWA offline, modo docente, decaimiento de los RTG y degradación de la radiación.

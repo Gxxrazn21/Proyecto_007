@@ -1,0 +1,8 @@
+{
+  "_comment": "Respaldo offline: eventos naturales reales registrados por NASA EONET.",
+  "events": [
+    { "title": "Huracán Otis (Acapulco, México)", "category": "severeStorms", "date": "2023-10-25", "source": "offline" },
+    { "title": "Erupción del volcán Hunga Tonga-Hunga Ha'apai", "category": "volcanoes", "date": "2022-01-15", "source": "offline" },
+    { "title": "Incendios forestales de Quebec, Canadá", "category": "wildfires", "date": "2023-06-07", "source": "offline" }
+  ]
+}

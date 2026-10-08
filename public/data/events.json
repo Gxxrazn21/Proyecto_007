@@ -601,6 +601,53 @@
           ]
         }
       ]
+    },
+    {
+      "id": "eonet",
+      "title": "{category}: {title}",
+      "phase": "science",
+      "tags": [
+        "leo"
+      ],
+      "feed": "eonet",
+      "weight": 3,
+      "timeoutChoice": 1,
+      "text": "NASA EONET reporta un evento natural en curso: {title} ({date}). Los equipos de emergencia piden imágenes desde órbita.",
+      "lesson": "Satélites como Landsat, Terra y Aqua vigilan incendios, volcanes y huracanes. NASA EONET reúne estos eventos en tiempo real para científicos y equipos de emergencia.",
+      "choices": [
+        {
+          "label": "Reprogramar la cámara para fotografiarlo",
+          "outcomes": [
+            {
+              "when": "has.camera>=1",
+              "effects": {
+                "science": 0.12
+              },
+              "text": "Tus imágenes ayudaron a coordinar la respuesta de emergencia (+12 % de ciencia)."
+            },
+            {
+              "when": "has.spectrometer>=1",
+              "effects": {
+                "science": 0.06
+              },
+              "text": "Sin cámara, el espectrómetro midió el humo y las cenizas (+6 % de ciencia)."
+            },
+            {
+              "effects": {},
+              "text": "Tu nave no tenía instrumentos de imagen para ayudar."
+            }
+          ]
+        },
+        {
+          "label": "Seguir el plan de observación",
+          "outcomes": [
+            {
+              "effects": {},
+              "text": "Seguiste tu plan; otro satélite tomó las imágenes."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -11,7 +11,7 @@
  * Variables disponibles: ver buildContext().
  */
 import type { DesignStats } from './calc';
-import type { Asteroid, Effects, EventDef, Mission, Outcome, ReportEntry, SolarEvent } from '../types';
+import type { Asteroid, EarthEvent, Effects, EventDef, Mission, Outcome, ReportEntry, SolarEvent } from '../types';
 
 /** Estado vivo de la nave durante la operación. */
 export interface OpsState {
@@ -45,6 +45,7 @@ export interface Feeds {
   cmes: SolarEvent[];
   storms: SolarEvent[];
   asteroids: Asteroid[];
+  earth: EarthEvent[];
 }
 
 /** Variables numéricas que pueden usar las condiciones. */
@@ -171,6 +172,7 @@ function feedAvailable(e: EventDef, f: Feeds): boolean {
     case 'donki-cme': return f.cmes.length > 0;
     case 'donki-storm': return f.storms.length > 0;
     case 'neows': return f.asteroids.length > 0;
+    case 'eonet': return f.earth.length > 0;
     default: return true;
   }
 }
@@ -199,10 +201,24 @@ function prepare(def: EventDef, mission: Mission, feeds: Feeds, shadowName: stri
     vars.distance = a.missLunar.toFixed(1);
     vars.date = formatDate(a.date);
     dataSource = a.source === 'neows' ? 'Dato real en vivo: NASA NeoWs' : 'Dato real: NASA NeoWs';
+  } else if (def.feed === 'eonet') {
+    const e = pickOne(feeds.earth);
+    vars.title = e.title;
+    vars.category = EARTH_CATEGORY[e.category] ?? 'Evento natural';
+    vars.date = formatDate(e.date);
+    dataSource = e.source === 'eonet' ? 'Dato real en vivo: NASA EONET' : 'Evento real: NASA EONET';
   }
 
   return { def, title: fill(def.title, vars), text: fill(def.text, vars), severity, dataSource, vars };
 }
+
+const EARTH_CATEGORY: Record<string, string> = {
+  wildfires: 'Incendio forestal',
+  volcanoes: 'Volcán activo',
+  severeStorms: 'Tormenta severa',
+  floods: 'Inundación',
+  seaLakeIce: 'Hielo marino',
+};
 
 export function fill(template: string, vars: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`);

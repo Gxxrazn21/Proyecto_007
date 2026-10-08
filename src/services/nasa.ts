@@ -9,7 +9,7 @@
  * El juego NUNCA se bloquea por falta de internet.
  */
 import { offlineEnv } from '../systems/ephemeris';
-import type { Apod, Asteroid, Body, EnvData, SolarEvent } from '../types';
+import type { Apod, Asteroid, Body, EarthEvent, EnvData, SolarEvent } from '../types';
 import type { Feeds } from '../systems/events';
 
 const TIMEOUT_MS = 5000;
@@ -45,6 +45,11 @@ export async function getFeeds(): Promise<Feeds> {
     () => getJson<Asteroid[]>('api/neows'),
     async () => (await getJson<{ asteroids: Asteroid[] }>('data/fallback/neows.json')).asteroids,
   );
+  const earth = await withFallback(
+    'eonet',
+    () => getJson<EarthEvent[]>('api/eonet'),
+    async () => (await getJson<{ events: EarthEvent[] }>('data/fallback/eonet.json')).events,
+  );
   // Si el Sol estuvo tranquilo en los últimos meses, completamos con eventos históricos.
   const hist = await offline.catch(() => ({ flares: [], cmes: [], storms: [] }));
   return {
@@ -52,6 +57,7 @@ export async function getFeeds(): Promise<Feeds> {
     cmes: donki.cmes.length ? donki.cmes : hist.cmes,
     storms: donki.storms.length ? donki.storms : hist.storms,
     asteroids: asteroids.length ? asteroids : [],
+    earth: earth.length ? earth : (await getJson<{ events: EarthEvent[] }>('data/fallback/eonet.json').catch(() => ({ events: [] }))).events,
   };
 }
 

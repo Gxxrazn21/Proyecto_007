@@ -5,6 +5,7 @@
 import Phaser from 'phaser';
 import { C, FONT, PAL, type PalKey } from '../art/palette';
 import { BASE_H, VIEW, frameCamera } from './view';
+import { sfx } from '../systems/sfx';
 
 /* ------------------------------------------------------------------ */
 /* Texto                                                                */
@@ -100,6 +101,7 @@ export class Button extends Phaser.GameObjects.Container {
     this.on('pointerup', () => {
       if (!this.enabled) return;
       this.setY(this.y - 1);
+      sfx.play('click');
       this.onClick();
     });
     this.redraw();
